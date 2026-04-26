@@ -1,16 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Users, BookOpen, GraduationCap, DollarSign, TrendingUp, Search, Bell, Settings, LogOut, ChevronDown, CheckCircle2, AlertCircle, ArrowUpRight, ArrowDownRight, UserPlus, FileText, MoreVertical } from "lucide-react";
+import { Users, BookOpen, GraduationCap, DollarSign, TrendingUp, Search, Bell, Settings, LogOut, ChevronDown, CheckCircle2, AlertCircle, ArrowUpRight, ArrowDownRight, UserPlus, FileText, MoreVertical, Database } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { AdminContentManager } from "@/components/AdminContentManager";
 import { useRouter } from "next/navigation";
 
 export default function AdminDashboard() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("overview");
   const [isLoadingSession, setIsLoadingSession] = useState(true);
+  const [apiStats, setApiStats] = useState<any>(null);
+  const [apiUsers, setApiUsers] = useState<any[]>([]);
 
   useEffect(() => {
     fetch('/api/auth/session')
@@ -22,29 +25,50 @@ export default function AdminDashboard() {
           setIsLoadingSession(false);
         }
       })
-      .catch(() => {
-        router.push('/login');
-      });
+      .catch(() => { router.push('/login'); });
   }, [router]);
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/stats');
+      if (res.ok) setApiStats(await res.json());
+    } catch {}
+  }, []);
+
+  const fetchUsers = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/users?limit=10');
+      if (res.ok) { const d = await res.json(); setApiUsers(d.users || []); }
+    } catch {}
+  }, []);
+
+  useEffect(() => { if (!isLoadingSession) { fetchStats(); fetchUsers(); } }, [isLoadingSession, fetchStats, fetchUsers]);
 
   if (isLoadingSession) {
     return <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center' }}>Verifying Administrator Access...</div>;
   }
 
-  // Mock Data
-  const stats = [
-    { title: "Total Users", value: "12,450", change: "+14.5%", up: true, icon: Users, color: "3b82f6" },
-    { title: "Active Mentors", value: "342", change: "+5.2%", up: true, icon: GraduationCap, color: "8b5cf6" },
-    { title: "Active Roadmaps", value: "8,920", change: "+22.4%", up: true, icon: BookOpen, color: "10b981" },
-    { title: "Revenue", value: "$45,230", change: "-2.4%", up: false, icon: DollarSign, color: "f59e0b" },
+  // Stats — use real API data when available, fallback to mock
+  const stats = apiStats ? [
+    { title: "Total Users", value: apiStats.users?.total?.toLocaleString() || "0", change: apiStats.users?.growth || "+0%", up: !apiStats.users?.growth?.startsWith("-"), icon: Users, color: "3b82f6" },
+    { title: "Active Mentors", value: apiStats.mentors?.toString() || "0", change: "+5.2%", up: true, icon: GraduationCap, color: "8b5cf6" },
+    { title: "Content Items", value: apiStats.content?.total?.toString() || "0", change: "+100%", up: true, icon: Database, color: "10b981" },
+    { title: "Messages", value: apiStats.messages?.toLocaleString() || "0", change: "+12%", up: true, icon: BookOpen, color: "f59e0b" },
+  ] : [
+    { title: "Total Users", value: "—", change: "loading", up: true, icon: Users, color: "3b82f6" },
+    { title: "Active Mentors", value: "—", change: "loading", up: true, icon: GraduationCap, color: "8b5cf6" },
+    { title: "Content Items", value: "—", change: "loading", up: true, icon: Database, color: "10b981" },
+    { title: "Messages", value: "—", change: "loading", up: true, icon: BookOpen, color: "f59e0b" },
   ];
 
-  const recentUsers = [
+  // Use real users from API, fallback to mock
+  const recentUsers = apiUsers.length > 0 ? apiUsers.map((u: any) => ({
+    id: u.id, name: u.name || "Unknown", email: u.email, status: "Active", plan: u.tier || "Free",
+    joinDate: new Date(u.createdAt).toLocaleDateString()
+  })) : [
     { id: 1, name: "Emma Thompson", email: "emma.t@example.com", status: "Active", plan: "Pro", joinDate: "2 hours ago" },
     { id: 2, name: "David Chen", email: "david.c@example.com", status: "Pending", plan: "Free", joinDate: "5 hours ago" },
     { id: 3, name: "Sarah Williams", email: "sarah.w@example.com", status: "Active", plan: "Free", joinDate: "1 day ago" },
-    { id: 4, name: "Michael Brown", email: "mbrown@example.com", status: "Suspended", plan: "Pro", joinDate: "2 days ago" },
-    { id: 5, name: "Jessica Davis", email: "jess.d@example.com", status: "Active", plan: "Premium", joinDate: "3 days ago" },
   ];
 
   const activities = [
@@ -189,7 +213,7 @@ export default function AdminDashboard() {
                           <td style={{ padding: "1rem 0.5rem" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                               <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "var(--bg-color)", border: "1px solid var(--card-border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.8rem", fontWeight: "bold", color: "var(--text-muted)" }}>
-                                {user.name.split(" ").map(n => n[0]).join("")}
+                                {user.name.split(" ").map((n: string) => n[0]).join("")}
                               </div>
                               <div>
                                 <p style={{ margin: 0, fontWeight: "600", fontSize: "0.95rem" }}>{user.name}</p>
@@ -288,7 +312,7 @@ export default function AdminDashboard() {
                     <td style={{ padding: "1rem 0.5rem" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                         <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "var(--bg-color)", border: "1px solid var(--card-border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.9rem", fontWeight: "bold", color: "var(--text-muted)" }}>
-                          {user.name.split(" ").map(n => n[0]).join("")}
+                          {user.name.split(" ").map((n: string) => n[0]).join("")}
                         </div>
                         <div>
                           <p style={{ margin: 0, fontWeight: "600", fontSize: "1rem" }}>{user.name}</p>
@@ -341,17 +365,7 @@ export default function AdminDashboard() {
           </motion.div>
         )}
 
-        {activeTab === "content" && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "20px", padding: "3rem", textAlign: "center" }}>
-            <FileText size={48} color="var(--text-muted)" style={{ margin: "0 auto 1rem auto", opacity: 0.5 }} />
-            <h2 style={{ margin: "0 0 0.5rem 0", fontSize: "1.5rem" }}>Content Management</h2>
-            <p style={{ color: "var(--text-muted)", maxWidth: "500px", margin: "0 auto 2rem auto" }}>Manage universities, scholarships, and system-wide templates here.</p>
-            <div style={{ display: "flex", justifyContent: "center", gap: "1rem" }}>
-              <button style={{ padding: "0.75rem 1.5rem", background: "linear-gradient(135deg, #3b82f6, #8b5cf6)", color: "white", border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer" }}>Import Data</button>
-              <button style={{ padding: "0.75rem 1.5rem", background: "var(--bg-color)", color: "var(--text-color)", border: "1px solid var(--card-border)", borderRadius: "8px", fontWeight: "600", cursor: "pointer" }}>Add Manually</button>
-            </div>
-          </motion.div>
-        )}
+        {activeTab === "content" && <AdminContentManager />}
 
         {activeTab === "settings" && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "20px", padding: "2rem", display: "flex", flexDirection: "column", gap: "2rem" }}>

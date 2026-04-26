@@ -108,7 +108,7 @@ export default function UniversitiesPage() {
         ];
 
         for (let u of data) {
-          if (extraUnis.length >= 280) break;
+          if (extraUnis.length >= 1480) break;
           if (topNames.some(tn => u.name.toLowerCase().includes(tn))) continue;
 
           extraUnis.push({
@@ -381,7 +381,7 @@ export default function UniversitiesPage() {
 
               <motion.div layout className={styles.universitiesGrid}>
                 <AnimatePresence>
-                  {(!loading && filteredData.length > 0) ? filteredData.slice(0, 60).map(uni => (
+                  {(!loading && filteredData.length > 0) ? filteredData.slice(0, 120).map(uni => (
                     <motion.div 
                       layout 
                       initial={{ opacity: 0, scale: 0.9 }} 

@@ -322,3 +322,109 @@ model Booking {
   mentor    MentorProfile @relation(fields: [mentorId], references: [id])
   student   User          @relation("StudentBookings", fields: [studentId], references: [id])
 }
+
+// ─── Admin Content Management ───────────────────────────────────────────────
+
+model ContentUniversity {
+  id          String   @id @default(cuid())
+  name        String
+  location    String
+  country     String
+  ranking     Int?
+  type        String?  // "Public" | "Private"
+  tuition     Float?
+  acceptance  Float?
+  logo        String?
+  website     String?
+  description String?
+  tags        String[]
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ContentProgram {
+  id           String   @id @default(cuid())
+  title        String
+  university   String
+  location     String
+  degreeLevel  String   // "Bachelor's" | "Master's" | "Ph.D." | "Summer" | "Certificate"
+  studyMode    String   // "On-Campus" | "Online" | "Hybrid"
+  tuition      Float    @default(0)
+  duration     String?
+  description  String?
+  tags         String[]
+  logo         String?
+  image        String?
+  applyLink    String?
+  isPublished  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model ContentScholarship {
+  id              String   @id @default(cuid())
+  title           String
+  provider        String
+  location        String
+  coverage        String   // "Full Ride" | "Partial" | "Tuition Only"
+  degreeLevel     String
+  deadline        String?
+  amount          Float    @default(0)
+  description     String?
+  specialFeatures String[]
+  tags            String[]
+  applyLink       String?
+  isPublished     Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ContentField {
+  id          String   @id @default(cuid())
+  title       String
+  category    String   // "stem" | "business" | "creative" | "health" | "humanities"
+  icon        String?
+  description String?
+  salary      String?
+  growth      String?
+  demand      String?
+  topUnis     String?
+  tags        String[]
+  image       String?
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ContentProject {
+  id          String   @id @default(cuid())
+  title       String
+  creator     String
+  difficulty  String   // "Beginner" | "Intermediate" | "Advanced"
+  category    String
+  status      String   @default("Open to Join")
+  duration    String?
+  description String?
+  tags        String[]
+  image       String?
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ContentRoadmap {
+  id          String   @id @default(cuid())
+  title       String
+  path        String   // "Frontend" | "Backend" | "AI & Data" etc.
+  level       String   // "Beginner" | "Intermediate" | "Advanced"
+  time        String?
+  modules     Int      @default(0)
+  description String?
+  tags        String[]
+  image       String?
+  tips        String[]
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
