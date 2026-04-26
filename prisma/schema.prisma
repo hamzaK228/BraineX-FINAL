@@ -1,0 +1,324 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Auth (NextAuth v5) ─────────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  passwordHash  String?
+  image         String?
+  role          String    @default("STUDENT") // STUDENT | MENTOR | ADMIN
+  tier          String    @default("Free")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Settings
+  language      String    @default("English (US)")
+  timeZone      String    @default("UTC")
+  theme         String    @default("system")
+  emailNotifs   Boolean   @default(true)
+  pushNotifs    Boolean   @default(true)
+  weeklyDigest  Boolean   @default(false)
+  twoFactorEnabled Boolean @default(false)
+
+  // NextAuth relations
+  accounts      Account[]
+  sessions      Session[]
+
+  // Dashboard relations
+  goals         Goal[]
+  tasks         Task[]
+  deadlines     Deadline[]
+  universities  UniversityTracker[]
+  programs      ProgramTracker[]
+  scholarships  ScholarshipTracker[]
+  roadmaps      Roadmap[]
+  resources     Resource[]
+  savedItems    SavedItem[]
+  notes         Note[]
+  events        PlannerEvent[]
+  notifications Notification[]
+
+  // Chat & Mentoring
+  chatParticipations ChatParticipant[]
+  sentMessages       Message[]
+  mentorProfile      MentorProfile?
+  bookingsAsStudent  Booking[]         @relation("StudentBookings")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── Dashboard Modules ─────────────────────────────────────────────────────
+
+model Goal {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  progress    Int      @default(0)
+  targetDate  DateTime?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  userId      String
+  title       String
+  description String?
+  status      String    @default("todo")
+  priority    String    @default("General")
+  dueDate     DateTime?
+  urgent      Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Deadline {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  date      DateTime
+  course    String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PlannerEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  date      DateTime
+  time      String?
+  type      String   @default("event") // "event" | "deadline" | "meeting"
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  content   String
+  color     String   @default("#3b82f6")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── Academic Trackers ─────────────────────────────────────────────────────
+
+model UniversityTracker {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  location  String?
+  status    String   @default("researching") // "researching" | "applied" | "accepted" | "rejected"
+  link      String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ProgramTracker {
+  id         String   @id @default(cuid())
+  userId     String
+  name       String
+  university String
+  duration   String?
+  status     String   @default("interested")
+  link       String?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ScholarshipTracker {
+  id        String    @id @default(cuid())
+  userId    String
+  title     String
+  provider  String
+  amount    String?
+  deadline  DateTime?
+  status    String    @default("saved") // "saved" | "applied" | "accepted" | "rejected"
+  link      String?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── Discovery & Learning ──────────────────────────────────────────────────
+
+model Roadmap {
+  id          String        @id @default(cuid())
+  userId      String
+  title       String
+  description String?
+  createdAt   DateTime      @default(now())
+  steps       RoadmapStep[]
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model RoadmapStep {
+  id          String   @id @default(cuid())
+  roadmapId   String
+  title       String
+  description String?
+  isCompleted Boolean  @default(false)
+  orderIndex  Int      @default(0)
+  roadmap     Roadmap  @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+}
+
+model SavedItem {
+  id        String   @id @default(cuid())
+  userId    String
+  itemId    String   // External reference ID ("mit", "fulbright", etc.)
+  title     String
+  type      String   // "University" | "Program" | "Scholarship" | "Project" | "Roadmap" | "Mentor"
+  source    String?  // Location or provider info
+  image     String?  // Thumbnail URL
+  link      String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemId, type])
+}
+
+model Resource {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  type      String   // "PDF" | "Video" | "Link"
+  link      String
+  tags      String[]
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String?
+  type      String   @default("system") // "alert" | "deadline" | "system"
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── Chat System ────────────────────────────────────────────────────────────
+
+model ChatRoom {
+  id           String            @id @default(cuid())
+  name         String?           // Optional room name
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  messages     Message[]
+  participants ChatParticipant[]
+}
+
+model ChatParticipant {
+  id       String   @id @default(cuid())
+  userId   String
+  roomId   String
+  role     String   @default("member") // "member" | "mentor"
+  joinedAt DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room     ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roomId])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  senderId  String
+  roomId    String
+  type      String   @default("text") // "text" | "image" | "file" | "code"
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  sender    User     @relation(fields: [senderId], references: [id])
+  room      ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+}
+
+// ─── Mentor Booking ─────────────────────────────────────────────────────────
+
+model MentorProfile {
+  id          String      @id @default(cuid())
+  userId      String      @unique
+  bio         String
+  expertise   String[]    // ["React", "System Design", ...]
+  company     String?
+  title       String?     // "Senior Engineer", etc.
+  hourlyRate  Float       @default(0) // 0 = free sessions
+  isVerified  Boolean     @default(false)
+  rating      Float       @default(0)
+  reviewCount Int         @default(0)
+  user        User        @relation(fields: [userId], references: [id])
+  slots       MentorSlot[]
+  bookings    Booking[]
+}
+
+model MentorSlot {
+  id        String        @id @default(cuid())
+  mentorId  String
+  dayOfWeek Int           // 0=Sun .. 6=Sat
+  startTime String        // "09:00"
+  endTime   String        // "10:00"
+  isActive  Boolean       @default(true)
+  mentor    MentorProfile @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+}
+
+model Booking {
+  id        String        @id @default(cuid())
+  mentorId  String
+  studentId String
+  date      DateTime
+  startTime String
+  endTime   String
+  status    String        @default("pending") // "pending" | "confirmed" | "cancelled" | "completed"
+  notes     String?
+  createdAt DateTime      @default(now())
+  mentor    MentorProfile @relation(fields: [mentorId], references: [id])
+  student   User          @relation("StudentBookings", fields: [studentId], references: [id])
+}
