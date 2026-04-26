@@ -16,11 +16,12 @@ export default function ProgramsPage() {
   };
 
   const [programs, setPrograms] = useState([
-    { id: 1, name: "B.S. Computer Science", university: "Stanford University", location: "Stanford, CA", type: "Bachelor's", duration: "4 Years", tuition: "$55,473/yr", match: "High" },
-    { id: 2, name: "M.S. Artificial Intelligence", university: "MIT", location: "Cambridge, MA", type: "Master's", duration: "2 Years", tuition: "$53,450/yr", match: "Medium" },
-    { id: 3, name: "B.A. Economics", university: "University of Oxford", location: "Oxford, UK", type: "Bachelor's", duration: "3 Years", tuition: "£28,950/yr", match: "High" },
-    { id: 4, name: "B.S. Software Engineering", university: "ETH Zurich", location: "Zurich, Switzerland", type: "Bachelor's", duration: "3 Years", tuition: "CHF 1,460/yr", match: "Very High" },
+    { id: 1, name: "B.S. Computer Science", university: "Stanford University", location: "Stanford, CA", type: "Bachelor's", duration: "4 Years", tuition: "$55,473/yr", match: "High", logo: "https://logo.clearbit.com/stanford.edu" },
+    { id: 2, name: "M.S. Artificial Intelligence", university: "MIT", location: "Cambridge, MA", type: "Master's", duration: "2 Years", tuition: "$53,450/yr", match: "Medium", logo: "https://logo.clearbit.com/mit.edu" },
+    { id: 3, name: "B.A. Economics", university: "University of Oxford", location: "Oxford, UK", type: "Bachelor's", duration: "3 Years", tuition: "£28,950/yr", match: "High", logo: "https://logo.clearbit.com/ox.ac.uk" },
+    { id: 4, name: "B.S. Software Engineering", university: "ETH Zurich", location: "Zurich, Switzerland", type: "Bachelor's", duration: "3 Years", tuition: "CHF 1,460/yr", match: "Very High", logo: "https://logo.clearbit.com/ethz.ch" },
   ]);
+  const [filter, setFilter] = useState("All");
 
   const [isAdding, setIsAdding] = useState(false);
   const [newProgram, setNewProgram] = useState({ name: "", university: "", location: "", type: "", duration: "", tuition: "" });
@@ -37,7 +38,8 @@ export default function ProgramsPage() {
       type: newProgram.type || "Bachelor's",
       duration: newProgram.duration || "4 Years",
       tuition: newProgram.tuition || "TBD",
-      match: "Medium"
+      match: "Medium",
+      logo: null
     }, ...programs]);
     
     setNewProgram({ name: "", university: "", location: "", type: "", duration: "", tuition: "" });
@@ -62,22 +64,45 @@ export default function ProgramsPage() {
           </h2>
           <p style={{ color: "var(--text-muted)", margin: 0 }}>Compare specific degree programs and their requirements.</p>
         </div>
-        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
           <div style={{ position: "relative" }}>
             <Search size={18} color="var(--text-muted)" style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)" }} />
             <input type="text" placeholder="Search saved programs..." style={{ padding: "0.75rem 1rem 0.75rem 2.5rem", borderRadius: "100px", background: "var(--bg-color)", border: "1px solid var(--card-border)", color: "var(--text-color)", outline: "none", width: "250px" }} />
           </div>
-          <button style={{ background: "var(--bg-color)", border: "1px solid var(--card-border)", borderRadius: "100px", padding: "0.75rem 1.5rem", color: "var(--text-color)", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: "600" }}>
-            <Filter size={18} /> Filters
-          </button>
           <button onClick={() => setIsAdding(true)} className="ds-btn ds-btn-primary" style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.5rem", borderRadius: "100px", border: "none", cursor: "pointer", fontWeight: "600" }}>
             <Plus size={20} /> Add Program
           </button>
         </div>
       </div>
 
+      <div style={{ display: "flex", gap: "0.5rem", overflowX: "auto", paddingBottom: "0.5rem", scrollbarWidth: "none" }}>
+        {["All", "Bachelor's", "Master's"].map(f => (
+          <button 
+            key={f} 
+            onClick={() => setFilter(f)} 
+            style={{ 
+              padding: "0.5rem 1.2rem", 
+              borderRadius: "100px", 
+              border: filter === f ? "none" : "1px solid var(--card-border)", 
+              background: filter === f ? "#10b981" : "var(--bg-color)", 
+              color: filter === f ? "white" : "var(--text-color)", 
+              cursor: "pointer", 
+              fontWeight: "600", 
+              fontSize: "0.9rem", 
+              transition: "all 0.2s" 
+            }}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
+
       <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-        {programs.map((prog, i) => (
+        {programs.filter(p => {
+          if (filter === "Bachelor's") return p.type === "Bachelor's";
+          if (filter === "Master's") return p.type === "Master's";
+          return true;
+        }).map((prog, i) => (
           <motion.div variants={itemVariants} key={i}>
             <div style={{ 
               background: "var(--card-bg)", 
@@ -96,8 +121,12 @@ export default function ProgramsPage() {
             onMouseOut={e => { e.currentTarget.style.transform = 'translateX(0)'; e.currentTarget.style.boxShadow = 'none'; }}
             >
               <div style={{ display: "flex", gap: "2rem", alignItems: "center", flexWrap: "wrap" }}>
-                <div style={{ width: "60px", height: "60px", background: "rgba(16, 185, 129, 0.1)", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <GraduationCap size={30} color="#10b981" />
+                <div style={{ width: "60px", height: "60px", background: "var(--bg-color)", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid var(--card-border)", overflow: "hidden" }}>
+                  {prog.logo && prog.logo.startsWith("http") ? (
+                    <img src={prog.logo} alt={prog.university} style={{ width: "100%", height: "100%", objectFit: "contain", padding: "8px", background: "white" }} />
+                  ) : (
+                    <GraduationCap size={30} color="#10b981" />
+                  )}
                 </div>
                 <div>
                   <h3 style={{ margin: "0 0 0.5rem 0", fontSize: "1.2rem" }}>{prog.name}</h3>
@@ -114,11 +143,11 @@ export default function ProgramsPage() {
                     <Clock size={16} /> {prog.duration}
                   </span>
                   <span style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "var(--text-color)", fontSize: "0.9rem", fontWeight: "700", justifyContent: "flex-end" }}>
-                    <DollarSign size={16} /> {prog.tuition}
+                    <DollarSign size={16} /> {prog.tuition === "0" ? "TBD" : prog.tuition}
                   </span>
                 </div>
-                <button style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "0.5rem", borderRadius: "50%", transition: "all 0.2s" }} onMouseOver={e => e.currentTarget.style.background = 'var(--bg-color)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
-                  <Bookmark size={22} fill="var(--text-muted)" />
+                <button style={{ background: "#10b981", color: "white", border: "none", borderRadius: "12px", padding: "0.6rem 1.2rem", fontWeight: "600", cursor: "pointer", fontSize: "0.9rem" }}>
+                  View Requirements
                 </button>
                 <button 
                   onClick={(e) => { e.stopPropagation(); deleteProgram(prog.id); }} 

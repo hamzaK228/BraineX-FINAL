@@ -60,7 +60,7 @@
 
 .fieldsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
   gap: 2rem;
 }
 
@@ -227,8 +227,21 @@
 }
 
 .pathwayLink {
-  color: #fbbf24;
-  font-weight: 700;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #1e293b;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 800;
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(245, 158, 11, 0.4);
+}
+
+.pathwayLink:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(245, 158, 11, 0.5);
 }

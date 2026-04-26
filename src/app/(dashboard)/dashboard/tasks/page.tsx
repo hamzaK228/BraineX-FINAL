@@ -15,43 +15,32 @@ export default function TasksPage() {
     visible: { opacity: 1, y: 0 }
   };
 
-  // Fallback data
-  const FALLBACK_COLUMNS: any = {
+  // Empty Columns Template
+  const EMPTY_COLUMNS: any = {
     todo: {
       title: "To Do",
       color: "#f43f5e",
-      tasks: [
-        { id: "t1", title: "Draft Personal Statement paragraph 1", tag: "Application", tagColor: "168,85,247", date: "Tomorrow", urgent: true },
-        { id: "t2", title: "Review GRE Math formulas", desc: "Focus on geometry and probability", tag: "Study", tagColor: "59,130,246", date: "Oct 14" },
-        { id: "t3", title: "Update Resume", desc: "Add recent volunteer experience", tag: "Profile", tagColor: "245,158,11", date: "Oct 16" }
-      ]
+      tasks: []
     },
     inProgress: {
       title: "In Progress",
       color: "#f59e0b",
-      tasks: [
-        { id: "t4", title: "Stanford Fellowship Essay", desc: "Write second draft", tag: "Scholarship", tagColor: "16,185,129", date: "Oct 15", urgent: true },
-        { id: "t5", title: "Data Structures Course", desc: "Complete Module 4 assignment", tag: "Study", tagColor: "59,130,246", date: "Oct 18" }
-      ]
+      tasks: []
     },
     inReview: {
       title: "In Review",
       color: "#3b82f6",
-      tasks: [
-        { id: "t6", title: "Recommendation Letter Request", desc: "Waiting for Prof. Smith's reply", tag: "Application", tagColor: "168,85,247", date: "Pending" }
-      ]
+      tasks: []
     },
     completed: {
       title: "Completed",
       color: "#10b981",
-      tasks: [
-        { id: "t7", title: "Submit FAFSA Application", tag: "Finance", tagColor: "16,185,129", date: "Done on Oct 1" }
-      ]
+      tasks: []
     }
   };
 
   // State for columns and tasks
-  const [columns, setColumns] = useState<any>(FALLBACK_COLUMNS);
+  const [columns, setColumns] = useState<any>(EMPTY_COLUMNS);
 
   const statusToColumn: any = { todo: "todo", in_progress: "inProgress", in_review: "inReview", completed: "completed" };
   const columnToStatus: any = { todo: "todo", inProgress: "in_progress", inReview: "in_review", completed: "completed" };
@@ -78,14 +67,14 @@ export default function TasksPage() {
       const res = await fetch("/api/tasks");
       if (res.ok) {
         const data = await res.json();
+        const mapped: any = { todo: { ...EMPTY_COLUMNS.todo, tasks: [] }, inProgress: { ...EMPTY_COLUMNS.inProgress, tasks: [] }, inReview: { ...EMPTY_COLUMNS.inReview, tasks: [] }, completed: { ...EMPTY_COLUMNS.completed, tasks: [] } };
         if (Array.isArray(data) && data.length > 0) {
-          const mapped: any = { todo: { ...FALLBACK_COLUMNS.todo, tasks: [] }, inProgress: { ...FALLBACK_COLUMNS.inProgress, tasks: [] }, inReview: { ...FALLBACK_COLUMNS.inReview, tasks: [] }, completed: { ...FALLBACK_COLUMNS.completed, tasks: [] } };
           data.forEach((t: any) => {
             const col = statusToColumn[t.status] || "todo";
             mapped[col].tasks.push({ id: t.id, title: t.title, desc: t.description || "", tag: t.priority || "General", tagColor: "168,85,247", date: t.dueDate ? new Date(t.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "TBD", urgent: t.priority === "urgent" });
           });
-          setColumns(mapped);
         }
+        setColumns(mapped);
       }
     } catch { /* fallback */ }
   }, []);
@@ -133,11 +122,12 @@ export default function TasksPage() {
 
     // Persist to API
     try {
-      await fetch("/api/tasks", {
+      const res = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: newTask.title, description: newTask.desc, priority: newTask.tag, status: "todo", dueDate: newTask.date || null }),
       });
+      if (res.ok) fetchTasks();
     } catch { /* silent */ }
   };
 
@@ -173,28 +163,47 @@ export default function TasksPage() {
   };
 
   // --- MANUAL MOVE HANDLER (For mobile/click) ---
-  const moveTask = (sourceColId: string, targetColId: string, taskIndex: number) => {
+  const moveTask = async (sourceColId: string, targetColId: string, taskIndex: number) => {
+    let movedTask: any;
     setColumns((prev: any) => {
       const newCols = { ...prev };
       
-      const task = newCols[sourceColId].tasks[taskIndex];
+      movedTask = newCols[sourceColId].tasks[taskIndex];
       newCols[sourceColId].tasks = [...newCols[sourceColId].tasks];
       newCols[sourceColId].tasks.splice(taskIndex, 1);
       
-      newCols[targetColId].tasks = [...newCols[targetColId].tasks, task];
+      newCols[targetColId].tasks = [...newCols[targetColId].tasks, movedTask];
       
       return newCols;
     });
     setActiveMenu(null);
+
+    if (movedTask && movedTask.id && !movedTask.id.startsWith("t")) {
+      try {
+        await fetch(`/api/tasks/${movedTask.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: columnToStatus[targetColId] }),
+        });
+      } catch { /* silent */ }
+    }
   };
 
-  const deleteTask = (colId: string, taskIndex: number) => {
+  const deleteTask = async (colId: string, taskIndex: number) => {
+    let deletedTaskId: string | undefined;
     setColumns((prev: any) => {
       const newCols = { ...prev };
+      deletedTaskId = newCols[colId].tasks[taskIndex]?.id;
       newCols[colId].tasks = newCols[colId].tasks.filter((_: any, i: number) => i !== taskIndex);
       return newCols;
     });
     setActiveMenu(null);
+
+    if (deletedTaskId && !deletedTaskId.startsWith("t")) {
+      try {
+        await fetch(`/api/tasks/${deletedTaskId}`, { method: "DELETE" });
+      } catch { /* silent */ }
+    }
   };
 
   const columnIds = Object.keys(columns);
@@ -231,8 +240,26 @@ export default function TasksPage() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <span style={{ background: `rgba(${task.tagColor}, 0.1)`, color: `rgb(${task.tagColor})`, padding: "0.25rem 0.75rem", borderRadius: "100px", fontSize: "0.75rem", fontWeight: "bold" }}>{task.tag}</span>
           
-          <div style={{ position: "relative" }}>
-            <button onClick={() => setActiveMenu(activeMenu === task.id ? null : task.id)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "0.2rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", position: "relative" }}>
+            {colIndex > 0 && (
+              <button 
+                onClick={(e) => { e.stopPropagation(); moveTask(colId, columnIds[colIndex - 1], index); }} 
+                style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "0.2rem", display: "flex", alignItems: "center", justifyContent: "center" }}
+                title={`Move to ${columns[columnIds[colIndex - 1]].title}`}
+              >
+                <ChevronLeft size={18} />
+              </button>
+            )}
+            {colIndex < columnIds.length - 1 && (
+              <button 
+                onClick={(e) => { e.stopPropagation(); moveTask(colId, columnIds[colIndex + 1], index); }} 
+                style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "0.2rem", display: "flex", alignItems: "center", justifyContent: "center" }}
+                title={`Move to ${columns[columnIds[colIndex + 1]].title}`}
+              >
+                <ChevronRight size={18} />
+              </button>
+            )}
+            <button onClick={() => setActiveMenu(activeMenu === task.id ? null : task.id)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "0.2rem", marginLeft: "0.25rem" }}>
               <MoreHorizontal size={18} />
             </button>
             
@@ -280,6 +307,8 @@ export default function TasksPage() {
     );
   };
 
+  const isBoardEmpty = Object.values(columns).every((col: any) => col.tasks.length === 0);
+
   return (
     <motion.div 
       initial="hidden" 
@@ -297,6 +326,17 @@ export default function TasksPage() {
           <Plus size={20} /> Create Task
         </button>
       </div>
+
+      {isBoardEmpty && !searchQuery && (
+        <motion.div variants={itemVariants} style={{ background: "rgba(99,102,241,0.05)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: "20px", padding: "3rem 2rem", textAlign: "center", marginBottom: "1rem" }}>
+          <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📝</div>
+          <h3 style={{ fontSize: "1.5rem", fontWeight: "700", margin: "0 0 0.5rem 0" }}>Start organizing your journey</h3>
+          <p style={{ color: "var(--text-muted)", marginBottom: "1.5rem", maxWidth: "600px", margin: "0 auto 1.5rem auto" }}>You don't have any tasks yet. Create one to keep track of your applications, deadlines, and goals.</p>
+          <button onClick={() => setIsAdding(true)} className="ds-btn ds-btn-primary" style={{ padding: "0.75rem 2rem", borderRadius: "100px", border: "none", cursor: "pointer", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
+            <Plus size={20} /> Create Your First Task
+          </button>
+        </motion.div>
+      )}
 
       <motion.div variants={itemVariants} style={{ display: "flex", gap: "1.5rem", overflowX: "auto", paddingBottom: "1rem" }}>
         

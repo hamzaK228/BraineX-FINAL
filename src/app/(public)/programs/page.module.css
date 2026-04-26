@@ -30,34 +30,21 @@
 
 .layout {
   display: flex;
+  flex-direction: column;
   gap: 2.5rem;
-  align-items: flex-start;
+  align-items: stretch;
   padding: 4rem 0;
 }
 
-@media (max-width: 1024px) {
-  .layout {
-    flex-direction: column;
-  }
-}
-
 .filterSidebar {
-  flex: 0 0 300px;
-  position: sticky;
-  top: 100px;
+  width: 100%;
+  position: relative;
   background: rgba(30, 41, 59, 0.7);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   overflow: hidden;
-}
-
-@media (max-width: 1024px) {
-  .filterSidebar {
-    flex: none;
-    width: 100%;
-    position: static;
-  }
+  margin-bottom: 1rem;
 }
 
 .filterHeader {
@@ -66,16 +53,24 @@
   align-items: center;
   padding: 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
 }
 
 .filterHeaderTitle {
   font-size: 1.1rem;
   font-weight: 700;
   color: #f8fafc;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .filterBody {
   padding: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  align-items: start;
 }
 
 .filterTitle {
@@ -100,9 +95,8 @@
 }
 
 .accordionItem {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 0;
+  border-top: none;
 }
 
 .accordionHeader {
@@ -112,13 +106,15 @@
   cursor: pointer;
   font-weight: 600;
   color: #e2e8f0;
+  margin-bottom: 0.75rem;
 }
 
 .filterFooter {
   padding: 1.5rem;
   display: flex;
+  justify-content: flex-end;
   gap: 1rem;
-  background: rgba(15, 23, 42, 0.3);
+  border-top: 1px solid rgba(255,255,255,0.1);
 }
 
 .clearBtn {
@@ -170,7 +166,7 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
   gap: 1.5rem;
 }
 

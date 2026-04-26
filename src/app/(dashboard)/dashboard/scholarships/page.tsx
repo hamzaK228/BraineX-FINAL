@@ -22,6 +22,7 @@ export default function ScholarshipsPage() {
   ];
 
   const [scholarships, setScholarships] = useState<any[]>(FALLBACK);
+  const [filter, setFilter] = useState("All");
 
   const fetchScholarships = useCallback(async () => {
     try {
@@ -115,8 +116,31 @@ export default function ScholarshipsPage() {
         </button>
       </div>
 
+      <div style={{ display: "flex", gap: "0.5rem", overflowX: "auto", paddingBottom: "0.5rem", scrollbarWidth: "none" }}>
+        {["All", "saved", "applied", "accepted", "rejected"].map(f => (
+          <button 
+            key={f} 
+            onClick={() => setFilter(f)} 
+            style={{ 
+              padding: "0.5rem 1.2rem", 
+              borderRadius: "100px", 
+              border: filter === f ? "none" : "1px solid var(--card-border)", 
+              background: filter === f ? "#f59e0b" : "var(--bg-color)", 
+              color: filter === f ? "white" : "var(--text-color)", 
+              cursor: "pointer", 
+              fontWeight: "600", 
+              fontSize: "0.9rem", 
+              transition: "all 0.2s",
+              textTransform: f === "All" ? "none" : "capitalize"
+            }}
+          >
+            {f === "All" ? "All" : f}
+          </button>
+        ))}
+      </div>
+
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.5rem" }}>
-        {scholarships.map((s) => (
+        {scholarships.filter(s => filter === "All" || s.status === filter).map((s) => (
           <motion.div variants={itemVariants} key={s.id}>
             <div 
               style={{ 
@@ -191,11 +215,11 @@ export default function ScholarshipsPage() {
 
               <div style={{ marginTop: "auto", display: "flex", gap: "0.5rem" }}>
                 {s.link && (
-                  <a href={s.link} target="_blank" rel="noopener noreferrer" style={{ flex: 1, textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.75rem", borderRadius: "12px", background: "var(--bg-color)", color: "var(--text-color)", fontSize: "0.9rem", fontWeight: "600", transition: "background 0.2s" }} onMouseOver={e => e.currentTarget.style.background = "var(--card-border)"} onMouseOut={e => e.currentTarget.style.background = "var(--bg-color)"}>
+                  <a href={s.link} target="_blank" rel="noopener noreferrer" style={{ flex: 1, textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.75rem", borderRadius: "12px", background: "#f59e0b", color: "white", fontSize: "0.9rem", fontWeight: "600", transition: "all 0.2s", border: "none", boxShadow: "0 4px 10px rgba(245, 158, 11, 0.2)" }} onMouseOver={e => e.currentTarget.style.transform = "translateY(-2px)"} onMouseOut={e => e.currentTarget.style.transform = "translateY(0)"}>
                     <ExternalLink size={16} /> Visit Page
                   </a>
                 )}
-                <button onClick={() => deleteScholarship(s.id)} style={{ padding: "0.75rem", borderRadius: "12px", background: "var(--bg-color)", border: "none", color: "#ef4444", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s" }} onMouseOver={e => e.currentTarget.style.background = "#ef444415"} onMouseOut={e => e.currentTarget.style.background = "var(--bg-color)"} title="Delete Scholarship">
+                <button onClick={() => deleteScholarship(s.id)} style={{ padding: "0.75rem", borderRadius: "12px", background: "var(--bg-color)", border: "1px solid var(--card-border)", color: "#ef4444", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s" }} onMouseOver={e => e.currentTarget.style.background = "#ef444415"} onMouseOut={e => e.currentTarget.style.background = "var(--bg-color)"} title="Delete Scholarship">
                   <Trash2 size={20} />
                 </button>
               </div>

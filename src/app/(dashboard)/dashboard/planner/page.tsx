@@ -254,9 +254,11 @@ export default function PlannerPage() {
           
           <div style={{ 
             display: "grid", 
-            gridTemplateColumns: view === "Day View" ? "1fr" : "repeat(7, 1fr)", 
+            gridTemplateColumns: view === "Day View" ? "1fr" : "repeat(7, minmax(120px, 1fr))", 
             gap: "1rem", 
-            minHeight: "550px" 
+            minHeight: "550px",
+            overflowX: "auto",
+            paddingBottom: "1rem"
           }}>
             {/* Month View Headers */}
             {view === "Month View" && ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(day => (

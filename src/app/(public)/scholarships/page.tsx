@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 import { PublicHeader } from "@/components/PublicHeader";
 import { InfoModal } from "@/components/InfoModal";
 import styles from "./page.module.css";
@@ -39,6 +40,7 @@ export default function ScholarshipsPage() {
   const [degreeLevels, setDegreeLevels] = useState<string[]>([]);
   const [locationFilter, setLocationFilter] = useState("");
   const [openAccordions, setOpenAccordions] = useState<string[]>(['coverage_type', 'degree_level']);
+  const [showFilters, setShowFilters] = useState(false);
   const { saveItem, removeItem, isSaved } = useSaved();
 
   const uniqueLocations = useMemo(() => Array.from(new Set(scholarshipsData.map(s => s.location))).sort(), []);
@@ -110,10 +112,24 @@ export default function ScholarshipsPage() {
         <section style={{ background: "rgba(15, 23, 42, 0.4)", position: "relative" }}>
           <div className={`container ${styles.layout}`}>
             <aside className={styles.filterSidebar}>
-              <div className={styles.filterHeader}>
-                <h3 className={styles.filterHeaderTitle}><Filter size={18} /> Filters</h3>
-                <span style={{ fontSize: "0.8rem", background: "#10b981", color: "white", padding: "0.2rem 0.6rem", borderRadius: "20px", fontWeight: 700 }}>{filteredData.length}</span>
+              <div className={styles.filterHeader} onClick={() => setShowFilters(!showFilters)}>
+                <h3 className={styles.filterHeaderTitle}>
+                  <Filter size={18} /> Filters
+                  <span style={{ fontSize: "0.8rem", background: "#10b981", color: "white", padding: "0.2rem 0.6rem", borderRadius: "20px", fontWeight: 700, marginLeft: "0.5rem" }}>
+                    {filteredData.length}
+                  </span>
+                </h3>
+                <ChevronDown size={20} style={{ transform: showFilters ? 'rotate(180deg)' : 'none', transition: '0.3s', color: 'var(--text-muted)' }} />
               </div>
+
+              <AnimatePresence>
+                {showFilters && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }} 
+                    animate={{ height: "auto", opacity: 1 }} 
+                    exit={{ height: 0, opacity: 0 }}
+                    style={{ overflow: "hidden" }}
+                  >
               <div className={styles.filterBody}>
                 <div className={styles.filterGroup}>
                   <h4 className={styles.filterTitle}>Country of Study</h4>
@@ -162,10 +178,13 @@ export default function ScholarshipsPage() {
                   <span>Unlock exclusive funding opportunities by joining!</span>
                 </div>
               </div>
-              <div className={styles.filterFooter}>
+              <div className={styles.filterFooter} style={{ borderTop: "1px solid rgba(255,255,255,0.1)", display: "flex", justifyContent: "flex-end", gap: "1rem" }}>
                 <button className={styles.clearBtn} onClick={() => { setCoverageFilter([]); setDegreeLevels([]); setSearch(""); setLocationFilter(""); }}>Clear All</button>
-                <button className={styles.applyBtn} style={{ background: "#10b981" }}>Apply</button>
+                <button className={styles.applyBtn} style={{ background: "#10b981" }} onClick={() => setShowFilters(false)}>Apply</button>
               </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </aside>
 
             <div className={styles.content}>
@@ -197,7 +216,7 @@ export default function ScholarshipsPage() {
                         </button>
                         <div className={styles.cardHeader}>
                           <div className={styles.logoWrapper}><Award size={32} color="#10b981" /></div>
-                          <div>
+                          <div style={{ paddingRight: "2rem" }}>
                             <h3 className={styles.title}>{schol.title}</h3>
                             <div className={styles.university}>{schol.provider}</div>
                             <div style={{ fontSize: "0.85rem", color: "#94a3b8", marginTop: "0.4rem", display: "flex", alignItems: "center", gap: "4px" }}><MapPin size={14} /> Study in: {schol.location}</div>
@@ -210,8 +229,11 @@ export default function ScholarshipsPage() {
                           <div className={styles.detailItem}><span className={styles.detailLabel}>Est. Value</span><span className={styles.detailValue}>~${schol.amount.toLocaleString()}</span></div>
                         </div>
                         <div className={styles.tags}>{schol.tags.map(tag => <span key={tag} className={styles.tag}>{tag}</span>)}</div>
-                        <div className={styles.cardActions}>
-                          <button onClick={() => setSelectedScholarship(schol)} className={styles.applyBtnMain}>View & Apply</button>
+                        <div className={styles.cardActions} style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
+                          <button onClick={() => setSelectedScholarship(schol)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#f8fafc", padding: "0.75rem", borderRadius: "12px", flex: 1, fontWeight: 600, cursor: "pointer", display: "flex", justifyContent: "center", alignItems: "center", gap: "0.5rem" }}><Award size={18} /> Details</button>
+                          <Link href="/dashboard" className="ds-btn ds-btn-primary" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.75rem", borderRadius: "12px", flex: 1, textDecoration: "none", background: "#10b981", color: "white", border: "none" }}>
+                            Apply <ArrowRight size={18} />
+                          </Link>
                         </div>
                       </motion.div>
                     ))}

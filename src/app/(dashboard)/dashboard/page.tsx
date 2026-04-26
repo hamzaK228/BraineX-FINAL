@@ -8,17 +8,14 @@ import Link from "next/link";
 export default function DashboardPage() {
   const [userName, setUserName] = useState("there");
   const [stats, setStats] = useState([
-    { label: "Active Goals", value: "—", icon: "🎯" },
-    { label: "Tasks In Progress", value: "—", icon: "📚" },
-    { label: "Scholarships Saved", value: "—", icon: "🏆" },
-    { label: "Deadlines This Month", value: "—", icon: "🔥" }
+    { label: "Active Goals", value: "0", icon: "🎯" },
+    { label: "Tasks In Progress", value: "0", icon: "📚" },
+    { label: "Scholarships Saved", value: "0", icon: "🏆" },
+    { label: "Deadlines This Month", value: "0", icon: "🔥" }
   ]);
-  const [goals, setGoals] = useState([
-    { id: 1, text: "Apply for Stanford AI Fellowship", completed: true, category: "Scholarship", progress: 100 },
-    { id: 2, text: "Finish 'Data Structures' Roadmap", completed: false, category: "Learning", progress: 65 },
-    { id: 3, text: "Complete Next.js Portfolio Project", completed: false, category: "Project", progress: 30 },
-    { id: 4, text: "Schedule 1-on-1 with Dr. Sarah Chen", completed: false, category: "Mentorship", progress: 0 },
-  ]);
+  const [goals, setGoals] = useState<any[]>([]);
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [isReady, setIsReady] = useState(false);
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -33,7 +30,7 @@ export default function DashboardPage() {
         const s = await statsRes.json();
         setStats([
           { label: "Active Goals", value: String(s.goals ?? 0), icon: "🎯" },
-          { label: "Tasks In Progress", value: String(s.tasks ?? 0), icon: "📚" },
+          { label: "Tasks In Progress", value: String(s.tasks?.total ?? 0), icon: "📚" },
           { label: "Scholarships Saved", value: String(s.scholarships ?? 0), icon: "🏆" },
           { label: "Deadlines This Month", value: String(s.deadlines ?? 0), icon: "🔥" }
         ]);
@@ -49,6 +46,21 @@ export default function DashboardPage() {
         }
       }
     } catch { /* fallback */ }
+    try {
+      // Fetch tasks
+      const tasksRes = await fetch("/api/tasks");
+      if (tasksRes.ok) {
+        const data = await tasksRes.json();
+        if (Array.isArray(data)) {
+          setTasks(data.slice(0, 5).map((t: any) => ({
+            id: t.id,
+            text: t.title,
+            done: t.status === "completed"
+          })));
+        }
+      }
+    } catch { /* fallback */ }
+    setIsReady(true);
   }, []);
 
   useEffect(() => { fetchDashboard(); }, [fetchDashboard]);
@@ -77,6 +89,8 @@ export default function DashboardPage() {
     </div>
   );
 
+  const isNewUser = isReady && stats.every(s => s.value === "0" || s.value === "—") && goals.length === 0;
+
   return (
     <motion.div 
       initial="hidden" 
@@ -97,7 +111,7 @@ export default function DashboardPage() {
           <div>
             <h2 style={{ fontSize: "2rem", marginBottom: "0.5rem", fontWeight: "800" }}>Welcome back, {userName}!</h2>
             <p style={{ color: "var(--text-muted)", fontSize: "1.1rem", maxWidth: "700px", lineHeight: "1.6" }}>
-              You're making great progress. You have <strong>3 scholarship deadlines</strong> approaching this week and you're 65% through your current roadmap. Keep it up!
+              Welcome to your BraineX Dashboard! As a new user, you can start by adding a goal, saving universities or programs, and managing your tasks. Let's build your path to success!
             </p>
           </div>
         </ComfortCard>
@@ -132,7 +146,7 @@ export default function DashboardPage() {
             </div>
             
             <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-              {goals.map((goal) => (
+              {goals.length > 0 ? goals.map((goal) => (
                 <div key={goal.id} style={{ 
                   background: "var(--bg-color)", 
                   border: "1px solid var(--card-border)",
@@ -166,7 +180,12 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--text-muted)" }}>
+                  <Target size={48} color="var(--card-border)" style={{ marginBottom: "1rem" }} />
+                  <p>You have no active goals. Start by adding one!</p>
+                </div>
+              )}
             </div>
             
             <Link href="/dashboard/goals" style={{ marginTop: "2rem", color: "#6366f1", fontSize: "1rem", fontWeight: "600", display: "flex", alignItems: "center", gap: "0.5rem", alignSelf: "center", textDecoration: "none" }}>
@@ -184,26 +203,10 @@ export default function DashboardPage() {
               <span style={{ fontSize: "1.5rem" }}>⏰</span>
               <h3 style={{ margin: 0, fontSize: "1.4rem", fontWeight: "700" }}>Upcoming Deadlines</h3>
             </div>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-              <li style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", borderBottom: "1px solid var(--card-border)", paddingBottom: "1.5rem" }}>
-                <div>
-                  <div style={{ fontWeight: "700", fontSize: "1.1rem", marginBottom: "0.3rem" }}>MIT Research Grant</div>
-                  <div style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>Application Submission</div>
-                </div>
-                <div style={{ background: "rgba(244,63,94,0.1)", color: "#f43f5e", padding: "0.4rem 0.8rem", borderRadius: "8px", fontSize: "0.9rem", fontWeight: "bold" }}>
-                  In 2 days
-                </div>
-              </li>
-              <li style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
-                <div>
-                  <div style={{ fontWeight: "700", fontSize: "1.1rem", marginBottom: "0.3rem" }}>DeepMind AI Fellowship</div>
-                  <div style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>Recommendation Letters</div>
-                </div>
-                <div style={{ background: "rgba(245,158,11,0.1)", color: "#f59e0b", padding: "0.4rem 0.8rem", borderRadius: "8px", fontSize: "0.9rem", fontWeight: "bold" }}>
-                  In 5 days
-                </div>
-              </li>
-            </ul>
+            <div style={{ textAlign: "center", padding: "2rem", color: "var(--text-muted)" }}>
+              <Clock size={32} color="var(--card-border)" style={{ marginBottom: "1rem" }} />
+              <p>No upcoming deadlines. Save a scholarship or program to track it here!</p>
+            </div>
           </ComfortCard>
 
           {/* Suggested for You */}
@@ -212,22 +215,10 @@ export default function DashboardPage() {
               <span style={{ fontSize: "1.5rem" }}>💡</span>
               <h3 style={{ margin: 0, fontSize: "1.4rem", fontWeight: "700" }}>Suggested for You</h3>
             </div>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-              <li style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", background: "var(--bg-color)", border: "1px solid var(--card-border)", padding: "1.25rem", borderRadius: "12px" }}>
-                <div>
-                  <div style={{ fontWeight: "700", fontSize: "1.05rem", marginBottom: "0.3rem" }}>Y Combinator Matching</div>
-                  <div style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Matches your Entrepreneurship goal</div>
-                </div>
-                <Link href="#" style={{ color: "#6366f1", background: "rgba(99,102,241,0.1)", padding: "0.5rem", borderRadius: "8px", display: "flex" }}><ArrowRight size={20} /></Link>
-              </li>
-              <li style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", background: "var(--bg-color)", border: "1px solid var(--card-border)", padding: "1.25rem", borderRadius: "12px" }}>
-                <div>
-                  <div style={{ fontWeight: "700", fontSize: "1.05rem", marginBottom: "0.3rem" }}>Intro to Quantum Computing</div>
-                  <div style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Based on your recent roadmap</div>
-                </div>
-                <Link href="#" style={{ color: "#6366f1", background: "rgba(99,102,241,0.1)", padding: "0.5rem", borderRadius: "8px", display: "flex" }}><ArrowRight size={20} /></Link>
-              </li>
-            </ul>
+            <div style={{ textAlign: "center", padding: "2rem", color: "var(--text-muted)" }}>
+              <Lightbulb size={32} color="var(--card-border)" style={{ marginBottom: "1rem" }} />
+              <p>Tell us more about your interests to get personalized suggestions.</p>
+            </div>
           </ComfortCard>
         </motion.div>
       </div>
@@ -245,24 +236,10 @@ export default function DashboardPage() {
               </div>
               <Link href="/universities" style={{ color: "#6366f1", fontSize: "0.95rem", fontWeight: "600", textDecoration: "none" }}>Browse All</Link>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-              {[
-                { name: "Stanford University", location: "California, USA", rank: "#3 Global", color: "#f43f5e" },
-                { name: "University of Oxford", location: "Oxford, UK", rank: "#1 Global", color: "#3b82f6" }
-              ].map((uni, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", padding: "1.25rem", border: "1px solid var(--card-border)", borderRadius: "16px", background: "var(--bg-color)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                    <div style={{ padding: "0.75rem", background: `rgba(99,102,241,0.1)`, color: "#6366f1", borderRadius: "12px" }}>
-                      <Building size={24} />
-                    </div>
-                    <div>
-                      <h4 style={{ margin: "0 0 0.2rem 0", fontSize: "1.1rem" }}>{uni.name}</h4>
-                      <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-muted)" }}>{uni.location}</p>
-                    </div>
-                  </div>
-                  <span style={{ fontSize: "0.85rem", fontWeight: "bold", background: "var(--card-border)", padding: "0.3rem 0.8rem", borderRadius: "100px" }}>{uni.rank}</span>
-                </div>
-              ))}
+            <div style={{ textAlign: "center", padding: "2rem", color: "var(--text-muted)" }}>
+              <Building size={32} color="var(--card-border)" style={{ marginBottom: "1rem" }} />
+              <p>You haven't saved any universities yet.</p>
+              <Link href="/universities" style={{ color: "#6366f1", marginTop: "1rem", display: "inline-block", fontWeight: "600" }}>Explore Universities</Link>
             </div>
           </ComfortCard>
         </motion.div>
@@ -277,31 +254,17 @@ export default function DashboardPage() {
               </div>
               <Link href="/programs" style={{ color: "#6366f1", fontSize: "0.95rem", fontWeight: "600", textDecoration: "none" }}>Browse All</Link>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-              {[
-                { name: "MS in Computer Science", uni: "Stanford University", deadline: "Dec 1", color: "#10b981" },
-                { name: "MBA in Finance", uni: "Wharton School", deadline: "Sep 15", color: "#f59e0b" }
-              ].map((prog, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", padding: "1.25rem", border: "1px solid var(--card-border)", borderRadius: "16px", background: "var(--bg-color)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                    <div style={{ padding: "0.75rem", background: `rgba(16,185,129,0.1)`, color: "#10b981", borderRadius: "12px" }}>
-                      <GraduationCap size={24} />
-                    </div>
-                    <div>
-                      <h4 style={{ margin: "0 0 0.2rem 0", fontSize: "1.1rem" }}>{prog.name}</h4>
-                      <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-muted)" }}>{prog.uni}</p>
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.85rem", fontWeight: "bold", color: "#f43f5e" }}>
-                    <Clock size={14} /> {prog.deadline}
-                  </div>
-                </div>
-              ))}
+            <div style={{ textAlign: "center", padding: "2rem", color: "var(--text-muted)" }}>
+              <GraduationCap size={32} color="var(--card-border)" style={{ marginBottom: "1rem" }} />
+              <p>You haven't saved any programs yet.</p>
+              <Link href="/programs" style={{ color: "#6366f1", marginTop: "1rem", display: "inline-block", fontWeight: "600" }}>Explore Programs</Link>
             </div>
           </ComfortCard>
         </motion.div>
       </div>
 
+      {!isNewUser ? (
+        <>
       {/* Row 5: Schedule & Important Dates */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))", gap: "2.5rem" }}>
         {/* Weekly Schedule */}
@@ -480,19 +443,33 @@ export default function DashboardPage() {
                 <span style={{ fontSize: "1.5rem" }}>✅</span>
                 <h3 style={{ margin: 0, fontSize: "1.4rem", fontWeight: "700" }}>Daily Tasks</h3>
               </div>
-              <button style={{ background: "none", border: "none", color: "#6366f1", fontWeight: "600", cursor: "pointer" }}><Plus size={20} /></button>
+              <Link href="/dashboard/tasks" style={{ color: "#6366f1", fontSize: "0.95rem", fontWeight: "600", textDecoration: "none" }}>View All</Link>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {[
-                { text: "Draft Personal Statement paragraph 1", done: false },
-                { text: "Email Prof. Smith for recommendation", done: true },
-                { text: "Review GRE Math formulas", done: false }
-              ].map((task, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1rem", background: "var(--bg-color)", borderRadius: "12px", border: "1px solid var(--card-border)", opacity: task.done ? 0.6 : 1 }}>
-                  {task.done ? <CheckCircle2 color="#10b981" /> : <Circle color="var(--text-muted)" />}
+              {tasks.length > 0 ? tasks.map((task, i) => (
+                <div key={task.id || i} style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1rem", background: "var(--bg-color)", borderRadius: "12px", border: "1px solid var(--card-border)", opacity: task.done ? 0.6 : 1, transition: "transform 0.2s" }}>
+                  <div style={{ cursor: "pointer" }} onClick={async () => {
+                    const newStatus = task.done ? "todo" : "completed";
+                    setTasks(tasks.map(t => t.id === task.id ? { ...t, done: !t.done } : t));
+                    try {
+                      await fetch(`/api/tasks/${task.id}`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ status: newStatus }),
+                      });
+                    } catch {}
+                  }}>
+                    {task.done ? <CheckCircle2 color="#10b981" /> : <Circle color="var(--text-muted)" />}
+                  </div>
                   <span style={{ fontSize: "1.05rem", textDecoration: task.done ? "line-through" : "none", color: task.done ? "var(--text-muted)" : "var(--text-color)" }}>{task.text}</span>
                 </div>
-              ))}
+              )) : (
+                <div style={{ textAlign: "center", padding: "2rem", color: "var(--text-muted)" }}>
+                  <ListTodo size={32} color="var(--card-border)" style={{ marginBottom: "1rem" }} />
+                  <p>No tasks for today. Start adding some!</p>
+                  <Link href="/dashboard/tasks" style={{ color: "#6366f1", marginTop: "1rem", display: "inline-block", fontWeight: "600" }}>Go to Tasks</Link>
+                </div>
+              )}
             </div>
           </ComfortCard>
         </motion.div>
@@ -659,6 +636,38 @@ export default function DashboardPage() {
           </ComfortCard>
         </motion.div>
       </div>
+      </>
+      ) : (
+        <motion.div variants={itemVariants} style={{ display: "grid", gridTemplateColumns: "1fr", gap: "2.5rem" }}>
+          <ComfortCard style={{ display: "flex", flexDirection: "column", gap: "1.5rem", alignItems: "center", textAlign: "center", padding: "4rem 2rem" }}>
+            <div style={{ fontSize: "3rem", background: "rgba(99,102,241,0.1)", width: "80px", height: "80px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", marginBottom: "1rem" }}>🚀</div>
+            <h3 style={{ margin: 0, fontSize: "1.8rem", fontWeight: "800" }}>Let's Get Started!</h3>
+            <p style={{ color: "var(--text-muted)", fontSize: "1.1rem", maxWidth: "600px", lineHeight: "1.6" }}>
+              Your dashboard is looking a bit empty because you haven't started tracking your activities yet. Here's a quick guide to what you can do:
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.5rem", width: "100%", marginTop: "2rem" }}>
+              <div style={{ padding: "1.5rem", background: "var(--bg-color)", borderRadius: "16px", border: "1px solid var(--card-border)" }}>
+                <Target size={24} color="#f43f5e" style={{ marginBottom: "1rem" }} />
+                <h4 style={{ margin: "0 0 0.5rem 0" }}>Set Goals</h4>
+                <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-muted)" }}>Use the Goals Tracker above to set your first academic goal.</p>
+              </div>
+              <div style={{ padding: "1.5rem", background: "var(--bg-color)", borderRadius: "16px", border: "1px solid var(--card-border)" }}>
+                <Map size={24} color="#10b981" style={{ marginBottom: "1rem" }} />
+                <h4 style={{ margin: "0 0 0.5rem 0" }}>Start a Roadmap</h4>
+                <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-muted)" }}>Explore our roadmaps to get a guided learning experience.</p>
+              </div>
+              <div style={{ padding: "1.5rem", background: "var(--bg-color)", borderRadius: "16px", border: "1px solid var(--card-border)" }}>
+                <Building size={24} color="#a855f7" style={{ marginBottom: "1rem" }} />
+                <h4 style={{ margin: "0 0 0.5rem 0" }}>Save Opportunities</h4>
+                <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-muted)" }}>Browse universities and scholarships to save them to your profile.</p>
+              </div>
+            </div>
+            <Link href="/dashboard/goals" className="ds-btn ds-btn-primary" style={{ marginTop: "2rem", padding: "0.75rem 2rem", borderRadius: "100px", fontWeight: "600", textDecoration: "none" }}>
+              Create Your First Goal
+            </Link>
+          </ComfortCard>
+        </motion.div>
+      )}
 
     </motion.div>
   );

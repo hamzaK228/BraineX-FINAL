@@ -83,58 +83,61 @@ export default function AdminDashboard() {
     <div style={{ minHeight: "100vh", background: "var(--bg-color)", display: "flex", flexDirection: "column" }}>
       
       {/* Top Navigation */}
-      <nav className="admin-nav" style={{ background: "rgba(255, 255, 255, 0.05)", backdropFilter: "blur(20px)", borderBottom: "1px solid var(--card-border)", padding: "1rem 2rem", position: "sticky", top: 0, zIndex: 100 }}>
-        <div className="admin-nav-left" style={{ gap: "2rem" }}>
-          <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <span style={{ fontSize: "1.5rem", fontWeight: "800", color: "var(--text-color)" }}>Braine<span style={{ color: "#f43f5e" }}>X</span></span>
-            <span style={{ background: "rgba(244,63,94,0.1)", color: "#f43f5e", padding: "0.2rem 0.5rem", borderRadius: "4px", fontSize: "0.7rem", fontWeight: "bold", letterSpacing: "1px", textTransform: "uppercase" }}>Admin</span>
-          </Link>
-          
-          <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-            {["overview", "users", "mentors", "content", "settings"].map((tab) => (
-              <button 
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                style={{ 
-                  background: "none", 
-                  border: "none", 
-                  padding: "0.5rem 1rem", 
-                  color: activeTab === tab ? "var(--text-color)" : "var(--text-muted)", 
-                  fontWeight: activeTab === tab ? "600" : "500", 
-                  cursor: "pointer", 
-                  textTransform: "capitalize",
-                  position: "relative",
-                  transition: "color 0.2s"
-                }}
-              >
-                {tab}
-                {activeTab === tab && (
-                  <motion.div layoutId="admin-nav" style={{ position: "absolute", bottom: "-1rem", left: 0, right: 0, height: "2px", background: "#f43f5e" }} />
-                )}
-              </button>
-            ))}
+      <nav className="admin-header" style={{ background: "rgba(255, 255, 255, 0.05)", backdropFilter: "blur(20px)", borderBottom: "1px solid var(--card-border)", zIndex: 100 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+          <div className="admin-nav-left">
+            <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <span style={{ fontSize: "1.5rem", fontWeight: "800", color: "var(--text-color)" }}>Braine<span style={{ color: "#f43f5e" }}>X</span></span>
+              <span style={{ background: "rgba(244,63,94,0.1)", color: "#f43f5e", padding: "0.2rem 0.5rem", borderRadius: "4px", fontSize: "0.7rem", fontWeight: "bold", letterSpacing: "1px", textTransform: "uppercase" }}>Admin</span>
+            </Link>
+          </div>
+
+          <div className="admin-nav-right" style={{ gap: "1rem" }}>
+            <div style={{ position: "relative" }} className="admin-search-container">
+              <Search size={18} color="var(--text-muted)" style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)" }} />
+              <input className="responsive-search" type="text" placeholder="Search..." style={{ padding: "0.5rem 1rem 0.5rem 2.5rem", borderRadius: "100px", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-color)", fontSize: "0.9rem", outline: "none" }} />
+            </div>
+            <ThemeToggle />
+            <button style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", position: "relative" }}>
+              <Bell size={20} />
+              <span style={{ position: "absolute", top: 0, right: 0, width: "8px", height: "8px", background: "#f43f5e", borderRadius: "50%" }} />
+            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer", paddingLeft: "0.5rem", borderLeft: "1px solid var(--card-border)" }}>
+              <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "linear-gradient(135deg, #f43f5e, #f97316)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "0.8rem" }}>AD</div>
+              <ChevronDown size={16} color="var(--text-muted)" className="admin-avatar-chevron" />
+            </div>
           </div>
         </div>
 
-        <div className="admin-nav-right" style={{ gap: "1.5rem" }}>
-          <div style={{ position: "relative" }}>
-            <Search size={18} color="var(--text-muted)" style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)" }} />
-            <input className="responsive-search" type="text" placeholder="Global Admin Search..." style={{ padding: "0.5rem 1rem 0.5rem 2.5rem", borderRadius: "100px", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-color)", fontSize: "0.9rem", outline: "none" }} />
-          </div>
-          <ThemeToggle />
-          <button style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", position: "relative" }}>
-            <Bell size={20} />
-            <span style={{ position: "absolute", top: 0, right: 0, width: "8px", height: "8px", background: "#f43f5e", borderRadius: "50%" }} />
-          </button>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer", paddingLeft: "1rem", borderLeft: "1px solid var(--card-border)" }}>
-            <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "linear-gradient(135deg, #f43f5e, #f97316)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "0.8rem" }}>AD</div>
-            <ChevronDown size={16} color="var(--text-muted)" />
-          </div>
+        {/* Tabs Below Header */}
+        <div style={{ display: "flex", gap: "1.5rem", overflowX: "auto", paddingTop: "0.5rem", marginTop: "0.5rem", whiteSpace: "nowrap", WebkitOverflowScrolling: "touch", width: "100%", scrollbarWidth: "none" }}>
+          {["overview", "users", "mentors", "content", "settings"].map((tab) => (
+            <button 
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              style={{ 
+                background: "none", 
+                border: "none", 
+                padding: "0.5rem 0.2rem", 
+                color: activeTab === tab ? "var(--text-color)" : "var(--text-muted)", 
+                fontWeight: activeTab === tab ? "600" : "500", 
+                cursor: "pointer", 
+                textTransform: "capitalize",
+                position: "relative",
+                transition: "color 0.2s"
+              }}
+            >
+              {tab}
+              {activeTab === tab && (
+                <motion.div layoutId="admin-nav" style={{ position: "absolute", bottom: "0", left: 0, right: 0, height: "2px", background: "#f43f5e" }} />
+              )}
+            </button>
+          ))}
         </div>
       </nav>
 
       {/* Main Content */}
-      <main style={{ padding: "2rem", maxWidth: "1600px", margin: "0 auto", width: "100%", flex: 1, display: "flex", flexDirection: "column", gap: "2rem" }}>
+      <main className="admin-main" style={{ maxWidth: "1600px", margin: "0 auto", width: "100%", flex: 1, display: "flex", flexDirection: "column", gap: "2rem" }}>
         
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "1rem" }}>

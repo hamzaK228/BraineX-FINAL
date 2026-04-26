@@ -41,6 +41,9 @@ export default function DashboardLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [isLoadingSession, setIsLoadingSession] = useState(true);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+
+  const [session, setSession] = useState<any>(null);
 
   // Check auth session
   useEffect(() => {
@@ -50,24 +53,61 @@ export default function DashboardLayout({
         if (!data || Object.keys(data).length === 0) {
           router.push('/login');
         } else {
-          setIsLoadingSession(false);
+          // Fetch fresh DB data to override stale JWT session (e.g. name changes)
+          fetch('/api/user/me')
+            .then(r => r.json())
+            .then(user => {
+              setSession({ ...data, user: { ...data.user, ...user } });
+              setIsLoadingSession(false);
+            })
+            .catch(() => {
+              setSession(data);
+              setIsLoadingSession(false);
+            });
         }
       })
       .catch(() => {
         router.push('/login');
       });
+
+    const handleProfileUpdate = () => {
+      fetch('/api/user/me')
+        .then(r => r.json())
+        .then(user => {
+          setSession((prev: any) => ({ ...prev, user: { ...prev?.user, ...user } }));
+        })
+        .catch(() => {});
+    };
+
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+    return () => window.removeEventListener('profileUpdated', handleProfileUpdate);
   }, [router]);
 
-  // Mock Notifications
-  const [notifications, setNotifications] = useState([
-    { id: 1, title: "New Scholarship Match", time: "2 hours ago", unread: true },
-    { id: 2, title: "Deadline Approaching: MIT", time: "5 hours ago", unread: true },
-    { id: 3, title: "Weekly Planner Ready", time: "1 day ago", unread: false }
-  ]);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  
+  useEffect(() => {
+    if (!isLoadingSession && session?.user?.id) {
+      fetch('/api/notifications')
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            setNotifications(data.map(n => ({
+              id: n.id,
+              title: n.title || n.message,
+              time: new Date(n.createdAt).toLocaleDateString(),
+              unread: !n.read
+            })));
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isLoadingSession, session]);
+
   const unreadCount = notifications.filter(n => n.unread).length;
 
   const markAllRead = () => {
     setNotifications(notifications.map(n => ({ ...n, unread: false })));
+    fetch('/api/notifications/read-all', { method: 'POST' }).catch(() => {});
   };
 
   // Close sidebar on mobile when navigating
@@ -197,15 +237,21 @@ export default function DashboardLayout({
             <span>Settings</span>
           </Link>
           
-          <div className={styles.profileCard}>
-            <div className={styles.avatar}>JD</div>
-            <div className={styles.profileInfo}>
-              <h4>John Doe</h4>
-              <p>Pro Member</p>
+          <Link href="/dashboard/settings" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+            <div className={styles.profileCard} style={{ cursor: "pointer", transition: "background 0.2s" }} onMouseOver={e => e.currentTarget.style.background = 'rgba(99,102,241,0.05)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+              <div className={styles.avatar}>{session?.user?.name ? session.user.name.substring(0, 2).toUpperCase() : "U"}</div>
+              <div className={styles.profileInfo}>
+                <h4>{session?.user?.name || "User"}</h4>
+                <p>{session?.user?.role === "ADMIN" ? "Admin" : "Pro Member"}</p>
+              </div>
             </div>
-          </div>
+          </Link>
           
-          <button className={styles.signOutBtn}>
+          <button className={styles.signOutBtn} onClick={() => {
+            fetch('/api/auth/signout', { method: 'POST' }).then(() => {
+              window.location.href = '/login';
+            });
+          }}>
             <LogOut size={20} />
             <span>Sign Out</span>
           </button>
@@ -287,8 +333,36 @@ export default function DashboardLayout({
                 )}
               </AnimatePresence>
             </div>
-            <div className={styles.userDropdown}>
-              <User size={20} />
+            <div style={{ position: "relative" }}>
+              <button className={styles.userDropdown} onClick={() => setShowUserDropdown(!showUserDropdown)}>
+                <User size={20} />
+              </button>
+              
+              <AnimatePresence>
+                {showUserDropdown && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    style={{ position: "absolute", top: "120%", right: "0", width: "200px", background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "12px", boxShadow: "0 10px 40px rgba(0,0,0,0.1)", zIndex: 50, overflow: "hidden", display: "flex", flexDirection: "column" }}
+                  >
+                    <div style={{ padding: "1rem", borderBottom: "1px solid var(--card-border)", display: "flex", flexDirection: "column" }}>
+                      <span style={{ fontWeight: "700", fontSize: "0.95rem" }}>{session?.user?.name || "User"}</span>
+                      <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>{session?.user?.email || ""}</span>
+                    </div>
+                    <Link href="/dashboard/settings" onClick={() => setShowUserDropdown(false)} style={{ padding: "0.75rem 1rem", color: "var(--text-color)", textDecoration: "none", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: "0.5rem", transition: "background 0.2s" }} onMouseOver={e => e.currentTarget.style.background = 'var(--bg-color)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+                      <Settings size={16} /> Settings
+                    </Link>
+                    <button onClick={() => {
+                      fetch('/api/auth/signout', { method: 'POST' }).then(() => {
+                        window.location.href = '/login';
+                      });
+                    }} style={{ padding: "0.75rem 1rem", color: "#ef4444", textDecoration: "none", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: "0.5rem", background: "transparent", border: "none", cursor: "pointer", textAlign: "left", transition: "background 0.2s", borderTop: "1px solid var(--card-border)" }} onMouseOver={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.05)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+                      <LogOut size={16} /> Sign Out
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>

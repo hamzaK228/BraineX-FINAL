@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 import { PublicHeader } from "@/components/PublicHeader";
 import { InfoModal } from "@/components/InfoModal";
 import styles from "./page.module.css";
@@ -32,6 +33,7 @@ export default function ProjectsPage() {
   const [categories, setCategories] = useState<string[]>([]);
   const [difficulties, setDifficulties] = useState<string[]>([]);
   const [openAccordions, setOpenAccordions] = useState<string[]>(['category', 'difficulty']);
+  const [showFilters, setShowFilters] = useState(false);
   const { saveItem, removeItem, isSaved } = useSaved();
 
   const toggleAccordion = (id: string) => setOpenAccordions(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
@@ -79,10 +81,24 @@ export default function ProjectsPage() {
         <section style={{ background: "rgba(15, 23, 42, 0.4)", position: "relative" }}>
           <div className={`container ${styles.layout}`}>
             <aside className={styles.filterSidebar}>
-              <div className={styles.filterHeader}>
-                <h3 className={styles.filterHeaderTitle}><Filter size={18} /> Filters</h3>
-                <span style={{ fontSize: "0.8rem", background: "#a855f7", color: "white", padding: "0.2rem 0.6rem", borderRadius: "20px", fontWeight: 700 }}>{filteredData.length}</span>
+              <div className={styles.filterHeader} onClick={() => setShowFilters(!showFilters)}>
+                <h3 className={styles.filterHeaderTitle}>
+                  <Filter size={18} /> Filters
+                  <span style={{ fontSize: "0.8rem", background: "#a855f7", color: "white", padding: "0.2rem 0.6rem", borderRadius: "20px", fontWeight: 700, marginLeft: "0.5rem" }}>
+                    {filteredData.length}
+                  </span>
+                </h3>
+                <ChevronDown size={20} style={{ transform: showFilters ? 'rotate(180deg)' : 'none', transition: '0.3s', color: 'var(--text-muted)' }} />
               </div>
+
+              <AnimatePresence>
+                {showFilters && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }} 
+                    animate={{ height: "auto", opacity: 1 }} 
+                    exit={{ height: 0, opacity: 0 }}
+                    style={{ overflow: "hidden" }}
+                  >
               <div className={styles.filterBody}>
                 <div className={styles.accordionItem}>
                   <div className={styles.accordionHeader} onClick={() => toggleAccordion('category')}>
@@ -123,10 +139,13 @@ export default function ProjectsPage() {
                   <span>Get matched with projects based on your skills!</span>
                 </div>
               </div>
-              <div className={styles.filterFooter}>
+              <div className={styles.filterFooter} style={{ borderTop: "1px solid rgba(255,255,255,0.1)", display: "flex", justifyContent: "flex-end", gap: "1rem" }}>
                 <button className={styles.clearBtn} onClick={() => { setCategories([]); setDifficulties([]); setSearch(""); }}>Clear All</button>
-                <button className={styles.applyBtn} style={{ background: "#a855f7" }}>Apply</button>
+                <button className={styles.applyBtn} style={{ background: "#a855f7" }} onClick={() => setShowFilters(false)}>Apply</button>
               </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </aside>
 
             <div className={styles.content}>
@@ -157,7 +176,7 @@ export default function ProjectsPage() {
                         </button>
                         <div className={styles.cardHeader}>
                           <div className={styles.logoWrapper}><Rocket size={32} color="#a855f7" /></div>
-                          <div>
+                          <div style={{ paddingRight: "2rem" }}>
                             <h3 className={styles.title}>{proj.title}</h3>
                             <div className={styles.university}>By: {proj.creator}</div>
                             <div style={{ fontSize: "0.85rem", color: "#94a3b8", marginTop: "0.4rem", display: "flex", alignItems: "center", gap: "4px" }}>
@@ -173,8 +192,11 @@ export default function ProjectsPage() {
                           <div className={styles.detailItem}><span className={styles.detailLabel}>Stack</span><span className={styles.detailValue}>{proj.tags.length} Techs</span></div>
                         </div>
                         <div className={styles.tags}>{proj.tags.map(tag => <span key={tag} className={styles.tag}>{tag}</span>)}</div>
-                        <div className={styles.cardActions}>
-                          <button onClick={() => setSelectedProject(proj)} className={styles.detailsBtn}>View Details</button>
+                        <div className={styles.cardActions} style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
+                          <button onClick={() => setSelectedProject(proj)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#f8fafc", padding: "0.75rem", borderRadius: "12px", flex: 1, fontWeight: 600, cursor: "pointer", display: "flex", justifyContent: "center", alignItems: "center", gap: "0.5rem" }}><Rocket size={18} /> Details</button>
+                          <Link href="/dashboard" className="ds-btn ds-btn-primary" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.75rem", borderRadius: "12px", flex: 1, textDecoration: "none", background: "#a855f7", color: "white", border: "none" }}>
+                            Join <ArrowRight size={18} />
+                          </Link>
                         </div>
                       </motion.div>
                     ))}

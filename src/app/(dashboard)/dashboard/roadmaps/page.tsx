@@ -64,6 +64,8 @@ export default function RoadmapsPage() {
   useEffect(() => { fetchRoadmaps(); }, [fetchRoadmaps]);
 
   const [activeRoadmapId, setActiveRoadmapId] = useState<number | null>(null);
+  const [filter, setFilter] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Modal states
   const [isAddingRoadmap, setIsAddingRoadmap] = useState(false);
@@ -143,13 +145,52 @@ export default function RoadmapsPage() {
               </h2>
               <p style={{ color: "var(--text-muted)", margin: 0 }}>Create and track custom step-by-step journeys for your goals.</p>
             </div>
-            <button onClick={() => setIsAddingRoadmap(true)} className="ds-btn ds-btn-primary" style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.5rem", borderRadius: "100px", border: "none", cursor: "pointer", fontWeight: "600", background: "#ec4899", color: "white" }}>
-              <Plus size={20} /> Create Roadmap
-            </button>
+            <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
+              <div style={{ position: "relative" }}>
+                <Search size={18} color="var(--text-muted)" style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)" }} />
+                <input 
+                  type="text" 
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Search roadmaps..." 
+                  style={{ padding: "0.75rem 1rem 0.75rem 2.5rem", borderRadius: "100px", background: "var(--bg-color)", border: "1px solid var(--card-border)", color: "var(--text-color)", outline: "none", width: "250px" }} 
+                />
+              </div>
+              <button onClick={() => setIsAddingRoadmap(true)} className="ds-btn ds-btn-primary" style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.5rem", borderRadius: "100px", border: "none", cursor: "pointer", fontWeight: "600", background: "#ec4899", color: "white" }}>
+                <Plus size={20} /> Create Roadmap
+              </button>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: "0.5rem", overflowX: "auto", paddingBottom: "0.5rem", scrollbarWidth: "none", marginBottom: "0.5rem" }}>
+            {["All", "In Progress", "Completed"].map(f => (
+              <button 
+                key={f} 
+                onClick={() => setFilter(f)} 
+                style={{ 
+                  padding: "0.5rem 1.2rem", 
+                  borderRadius: "100px", 
+                  border: filter === f ? "none" : "1px solid var(--card-border)", 
+                  background: filter === f ? "#ec4899" : "var(--bg-color)", 
+                  color: filter === f ? "white" : "var(--text-color)", 
+                  cursor: "pointer", 
+                  fontWeight: "600", 
+                  fontSize: "0.9rem", 
+                  transition: "all 0.2s" 
+                }}
+              >
+                {f}
+              </button>
+            ))}
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.5rem" }}>
-            {roadmaps.map((rm, i) => (
+            {roadmaps.filter(rm => {
+              const p = getProgress(rm.steps);
+              const statusMatch = filter === "All" ? true : filter === "Completed" ? p === 100 : p < 100;
+              const searchMatch = rm.title.toLowerCase().includes(searchQuery.toLowerCase());
+              return statusMatch && searchMatch;
+            }).map((rm, i) => (
               <motion.div variants={itemVariants} key={rm.id}>
                 <div 
                   onClick={() => setActiveRoadmapId(rm.id)}
@@ -221,7 +262,9 @@ export default function RoadmapsPage() {
             <div>
               <button 
                 onClick={() => setActiveRoadmapId(null)} 
-                style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: "600", fontSize: "0.9rem", marginBottom: "1rem", padding: 0 }}
+                style={{ background: "transparent", border: "none", color: "#ec4899", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "0.5rem", fontWeight: "700", fontSize: "0.95rem", marginBottom: "1rem", padding: "0.5rem 1rem", borderRadius: "100px", border: "1px solid #ec489950", transition: "all 0.2s" }}
+                onMouseOver={e => e.currentTarget.style.background = "#ec489915"}
+                onMouseOut={e => e.currentTarget.style.background = "transparent"}
               >
                 <ArrowLeft size={16} /> Back to Roadmaps
               </button>

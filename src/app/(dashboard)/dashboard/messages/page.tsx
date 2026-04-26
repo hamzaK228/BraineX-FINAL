@@ -38,10 +38,10 @@ export default function MessagesPage() {
   const activeMentor = mentors.find(m => m.id === activeChat);
 
   return (
-    <div style={{ display: "flex", height: "calc(100vh - 120px)", background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "24px", overflow: "hidden", boxShadow: "0 20px 40px rgba(0,0,0,0.05)" }}>
+    <div className="messages-layout" style={{ height: "calc(100vh - 120px)", background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "24px", overflow: "hidden", boxShadow: "0 20px 40px rgba(0,0,0,0.05)" }}>
       
       {/* Sidebar - Chat List */}
-      <div style={{ width: "320px", borderRight: "1px solid var(--card-border)", display: "flex", flexDirection: "column", background: "var(--bg-color)" }}>
+      <div className="messages-sidebar" style={{ width: "320px", borderRight: "1px solid var(--card-border)", display: "flex", flexDirection: "column", background: "var(--bg-color)" }}>
         <div style={{ padding: "1.5rem", borderBottom: "1px solid var(--card-border)" }}>
           <h2 style={{ margin: "0 0 1rem 0", fontSize: "1.5rem", fontWeight: "800" }}>Messages</h2>
           <div style={{ position: "relative", display: "flex", alignItems: "center" }}>

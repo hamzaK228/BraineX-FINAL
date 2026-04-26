@@ -29,13 +29,14 @@ export default function UniversitiesPage() {
   );
 
   const FALLBACK = [
-    { id: "1", name: "Stanford University", location: "Stanford, CA, USA", rank: "#2", match: "94%", logo: "🌲" },
-    { id: "2", name: "Massachusetts Institute of Technology", location: "Cambridge, MA, USA", rank: "#1", match: "88%", logo: "🏛️" },
-    { id: "3", name: "University of Oxford", location: "Oxford, UK", rank: "#3", match: "85%", logo: "🏰" },
-    { id: "4", name: "ETH Zurich", location: "Zurich, Switzerland", rank: "#7", match: "91%", logo: "🏔️" },
+    { id: "1", name: "Stanford University", location: "Stanford, CA, USA", rank: "#2", match: "94%", logo: "https://logo.clearbit.com/stanford.edu" },
+    { id: "2", name: "Massachusetts Institute of Technology", location: "Cambridge, MA, USA", rank: "#1", match: "88%", logo: "https://logo.clearbit.com/mit.edu" },
+    { id: "3", name: "University of Oxford", location: "Oxford, UK", rank: "#3", match: "85%", logo: "https://logo.clearbit.com/ox.ac.uk" },
+    { id: "4", name: "ETH Zurich", location: "Zurich, Switzerland", rank: "#7", match: "91%", logo: "https://logo.clearbit.com/ethz.ch" },
   ];
 
   const [savedUniversities, setSavedUniversities] = useState<any[]>(FALLBACK);
+  const [filter, setFilter] = useState("All");
 
   const fetchUnis = useCallback(async () => {
     try {
@@ -64,7 +65,7 @@ export default function UniversitiesPage() {
       location: newUni.location || "Unknown Location",
       rank: newUni.rank || "N/A",
       match: newUni.match ? `${newUni.match}%` : "TBD",
-      logo: "🏫"
+      logo: null
     }, ...savedUniversities]);
     
     setNewUni({ name: "", location: "", rank: "", match: "" });
@@ -98,29 +99,56 @@ export default function UniversitiesPage() {
           </h2>
           <p style={{ color: "var(--text-muted)", margin: 0 }}>Track and compare the universities you are applying to.</p>
         </div>
-        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
           <div style={{ position: "relative" }}>
             <Search size={18} color="var(--text-muted)" style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)" }} />
             <input type="text" placeholder="Search saved universities..." style={{ padding: "0.75rem 1rem 0.75rem 2.5rem", borderRadius: "100px", background: "var(--bg-color)", border: "1px solid var(--card-border)", color: "var(--text-color)", outline: "none", width: "250px" }} />
           </div>
-          <button style={{ background: "var(--bg-color)", border: "1px solid var(--card-border)", borderRadius: "100px", padding: "0.75rem 1.5rem", color: "var(--text-color)", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: "600" }}>
-            <Filter size={18} /> Filters
-          </button>
           <button onClick={() => setIsAdding(true)} className="ds-btn ds-btn-primary" style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.5rem", borderRadius: "100px", border: "none", cursor: "pointer", fontWeight: "600" }}>
             <Plus size={20} /> Add University
           </button>
         </div>
       </div>
 
+      <div style={{ display: "flex", gap: "0.5rem", overflowX: "auto", paddingBottom: "0.5rem", scrollbarWidth: "none" }}>
+        {["All", "Top Ranked", "High Match"].map(f => (
+          <button 
+            key={f} 
+            onClick={() => setFilter(f)} 
+            style={{ 
+              padding: "0.5rem 1.2rem", 
+              borderRadius: "100px", 
+              border: filter === f ? "none" : "1px solid var(--card-border)", 
+              background: filter === f ? "#6366f1" : "var(--bg-color)", 
+              color: filter === f ? "white" : "var(--text-color)", 
+              cursor: "pointer", 
+              fontWeight: "600", 
+              fontSize: "0.9rem", 
+              transition: "all 0.2s" 
+            }}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
+
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "1.5rem" }}>
-        {savedUniversities.map((uni) => (
+        {savedUniversities.filter(u => {
+          if (filter === "Top Ranked") return u.rank && parseInt(u.rank.replace(/[^0-9]/g, '')) <= 20;
+          if (filter === "High Match") return u.match && parseInt(u.match.replace(/[^0-9]/g, '')) >= 90;
+          return true;
+        }).map((uni) => (
           <motion.div variants={itemVariants} key={uni.id}>
             <ComfortCard style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.5rem", cursor: "pointer", transition: "transform 0.2s" }} onMouseOver={(e: any) => e.currentTarget.style.transform = 'translateY(-5px)'} onMouseOut={(e: any) => e.currentTarget.style.transform = 'translateY(0)'}>
               
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-                  <div style={{ fontSize: "2.5rem", width: "60px", height: "60px", background: "var(--bg-color)", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid var(--card-border)" }}>
-                    {uni.logo}
+                  <div style={{ width: "60px", height: "60px", background: "var(--bg-color)", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid var(--card-border)", overflow: "hidden" }}>
+                    {uni.logo && uni.logo.startsWith("http") ? (
+                      <img src={uni.logo} alt={uni.name} style={{ width: "100%", height: "100%", objectFit: "contain", padding: "8px", background: "white" }} />
+                    ) : (
+                      <span style={{ fontSize: "1.5rem", fontWeight: "bold", color: "#6366f1" }}>{uni.name.charAt(0)}</span>
+                    )}
                   </div>
                   <div>
                     <h3 style={{ margin: "0 0 0.25rem 0", fontSize: "1.1rem", lineHeight: "1.3" }}>{uni.name}</h3>

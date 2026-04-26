@@ -12,6 +12,7 @@ const schema = z.object({
   pushNotifs: z.boolean().optional(),
   weeklyDigest: z.boolean().optional(),
   twoFactorEnabled: z.boolean().optional(),
+  password: z.string().min(6).optional(),
 });
 
 export async function GET() {
@@ -30,9 +31,17 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json();
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: (parsed.error as any).errors[0].message }, { status: 400 });
+  
+  const updateData: any = { ...parsed.data };
+  if (updateData.password) {
+    const bcrypt = require("bcryptjs");
+    updateData.passwordHash = await bcrypt.hash(updateData.password, 10);
+    delete updateData.password;
+  }
+
   const user = await prisma.user.update({
     where: { id: session.user.id },
-    data: parsed.data,
+    data: updateData,
     select: { name: true, email: true, language: true, timeZone: true, theme: true, emailNotifs: true, pushNotifs: true, weeklyDigest: true, twoFactorEnabled: true },
   });
   return NextResponse.json(user);

@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 import { PublicHeader } from "@/components/PublicHeader";
 import { InfoModal } from "@/components/InfoModal";
 import styles from "./page.module.css";
@@ -30,6 +31,7 @@ export default function RoadmapsPage() {
   const [paths, setPaths] = useState<string[]>([]);
   const [levels, setLevels] = useState<string[]>([]);
   const [openAccordions, setOpenAccordions] = useState<string[]>(['path', 'level']);
+  const [showFilters, setShowFilters] = useState(false);
   const { saveItem, removeItem, isSaved } = useSaved();
 
   const toggleAccordion = (id: string) => setOpenAccordions(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
@@ -77,10 +79,24 @@ export default function RoadmapsPage() {
         <section style={{ background: "rgba(15, 23, 42, 0.4)", position: "relative" }}>
           <div className={`container ${styles.layout}`}>
             <aside className={styles.filterSidebar}>
-              <div className={styles.filterHeader}>
-                <h3 className={styles.filterHeaderTitle}><Filter size={18} /> Filter Paths</h3>
-                <span style={{ fontSize: "0.8rem", background: "#06b6d4", color: "white", padding: "0.2rem 0.6rem", borderRadius: "20px", fontWeight: 700 }}>{filteredData.length}</span>
+              <div className={styles.filterHeader} onClick={() => setShowFilters(!showFilters)}>
+                <h3 className={styles.filterHeaderTitle}>
+                  <Filter size={18} /> Filters
+                  <span style={{ fontSize: "0.8rem", background: "#06b6d4", color: "white", padding: "0.2rem 0.6rem", borderRadius: "20px", fontWeight: 700, marginLeft: "0.5rem" }}>
+                    {filteredData.length}
+                  </span>
+                </h3>
+                <ChevronDown size={20} style={{ transform: showFilters ? 'rotate(180deg)' : 'none', transition: '0.3s', color: 'var(--text-muted)' }} />
               </div>
+
+              <AnimatePresence>
+                {showFilters && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }} 
+                    animate={{ height: "auto", opacity: 1 }} 
+                    exit={{ height: 0, opacity: 0 }}
+                    style={{ overflow: "hidden" }}
+                  >
               <div className={styles.filterBody}>
                 <div className={styles.accordionItem}>
                   <div className={styles.accordionHeader} onClick={() => toggleAccordion('path')}>
@@ -119,10 +135,13 @@ export default function RoadmapsPage() {
                   <span>Get a personalized roadmap by answering 5 questions!</span>
                 </div>
               </div>
-              <div className={styles.filterFooter}>
+              <div className={styles.filterFooter} style={{ borderTop: "1px solid rgba(255,255,255,0.1)", display: "flex", justifyContent: "flex-end", gap: "1rem" }}>
                 <button className={styles.clearBtn} onClick={() => { setPaths([]); setLevels([]); setSearch(""); }}>Clear All</button>
-                <button className={styles.applyBtn} style={{ background: "#06b6d4" }}>Apply</button>
+                <button className={styles.applyBtn} style={{ background: "#06b6d4" }} onClick={() => setShowFilters(false)}>Apply</button>
               </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </aside>
 
             <div className={styles.content}>
@@ -153,7 +172,7 @@ export default function RoadmapsPage() {
                         </button>
                         <div className={styles.cardHeader}>
                           <div className={styles.logoWrapper}><Map size={32} color="#06b6d4" /></div>
-                          <div>
+                          <div style={{ paddingRight: "2rem" }}>
                             <h3 className={styles.title}>{rm.title}</h3>
                             <div className={styles.university}>{rm.path} Development</div>
                             <div style={{ fontSize: "0.85rem", color: "#94a3b8", marginTop: "0.4rem", display: "flex", alignItems: "center", gap: "4px" }}>
@@ -168,8 +187,11 @@ export default function RoadmapsPage() {
                           <div className={styles.detailItem} style={{ gridColumn: "span 2" }}><span className={styles.detailLabel}>Certification</span><span className={styles.detailValue} style={{ color: "#06b6d4" }}>Included</span></div>
                         </div>
                         <div className={styles.tags}>{rm.tags.map(tag => <span key={tag} className={styles.tag}>{tag}</span>)}</div>
-                        <div className={styles.cardActions}>
-                          <button onClick={() => setSelectedRoadmap(rm)} className={styles.startBtn}>Start Path <ArrowRight size={18} /></button>
+                        <div className={styles.cardActions} style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
+                          <button onClick={() => setSelectedRoadmap(rm)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#f8fafc", padding: "0.75rem", borderRadius: "12px", flex: 1, fontWeight: 600, cursor: "pointer", display: "flex", justifyContent: "center", alignItems: "center", gap: "0.5rem" }}><Map size={18} /> Details</button>
+                          <Link href="/dashboard" className="ds-btn ds-btn-primary" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.75rem", borderRadius: "12px", flex: 1, textDecoration: "none", background: "#06b6d4", color: "white", border: "none" }}>
+                            Start <ArrowRight size={18} />
+                          </Link>
                         </div>
                       </motion.div>
                     ))}

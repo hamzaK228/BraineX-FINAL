@@ -260,15 +260,15 @@ nav {
 
 @media (max-width: 1200px) {
   .nav-menu.desktop-only {
-    display: none;
+    display: none !important;
   }
   
   .hamburger-btn {
-    display: flex;
+    display: flex !important;
   }
   
   .header-actions .desktop-only {
-    display: none;
+    display: none !important;
   }
 }
 
@@ -375,12 +375,15 @@ nav {
 .admin-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 @media (max-width: 1024px) {
   .admin-grid {
     grid-template-columns: 1fr;
   }
+}
+.admin-grid > div {
+  min-width: 0;
 }
 .responsive-table-container {
   width: 100%;
@@ -392,10 +395,49 @@ nav {
 }
 @media (max-width: 640px) {
   .responsive-search {
-    width: 100%;
+    width: 140px;
+  }
+  .admin-search-container {
+    display: none;
+  }
+  .admin-avatar-chevron {
+    display: none;
   }
   .admin-nav-right {
-    width: 100%;
-    justify-content: space-between;
+    gap: 0.5rem;
+  }
+}
+
+.admin-header {
+  padding: 1rem 2rem;
+  position: relative;
+}
+.admin-main {
+  padding: 2rem;
+}
+
+@media (max-width: 768px) {
+  .admin-header {
+    padding: 0.5rem 1rem;
+    position: relative;
+  }
+  .admin-main {
+    padding: 1rem;
+  }
+}
+
+.messages-layout {
+  display: flex;
+}
+
+@media (max-width: 768px) {
+  .messages-layout {
+    flex-direction: column;
+  }
+  .messages-sidebar {
+    width: 100% !important;
+    max-height: 40% !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--card-border);
   }
 }

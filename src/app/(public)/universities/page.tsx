@@ -87,6 +87,7 @@ export default function UniversitiesPage() {
   const [types, setTypes] = useState<string[]>([]);
   const [tuitionRange, setTuitionRange] = useState<[number, number]>([0, 100000]);
   const [openAccordions, setOpenAccordions] = useState<string[]>(['fees', 'type']);
+  const [showFilters, setShowFilters] = useState(false);
 
   const toggleAccordion = (id: string) => {
     setOpenAccordions(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
@@ -270,14 +271,26 @@ export default function UniversitiesPage() {
         <section style={{ background: "rgba(15, 23, 42, 0.4)", position: "relative" }}>
           <div className={`container ${styles.universitiesLayout}`}>
             
-            {/* Filter Sidebar */}
+            {/* Top Filter Bar */}
             <aside className={styles.filterSidebar}>
-              <div className={styles.filterHeader}>
-                <h3 className={styles.filterHeaderTitle}><Filter size={18} /> Filters</h3>
-                <span style={{ fontSize: "0.8rem", background: "#6366f1", color: "white", padding: "0.2rem 0.6rem", borderRadius: "20px", fontWeight: 700 }}>
-                  {filteredData.length}
-                </span>
+              <div className={styles.filterHeader} onClick={() => setShowFilters(!showFilters)}>
+                <h3 className={styles.filterHeaderTitle}>
+                  <Filter size={18} /> Filters
+                  <span style={{ fontSize: "0.8rem", background: "#6366f1", color: "white", padding: "0.2rem 0.6rem", borderRadius: "20px", fontWeight: 700, marginLeft: "0.5rem" }}>
+                    {filteredData.length}
+                  </span>
+                </h3>
+                <ChevronDown size={20} style={{ transform: showFilters ? 'rotate(180deg)' : 'none', transition: '0.3s', color: 'var(--text-muted)' }} />
               </div>
+
+              <AnimatePresence>
+                {showFilters && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }} 
+                    animate={{ height: "auto", opacity: 1 }} 
+                    exit={{ height: 0, opacity: 0 }}
+                    style={{ overflow: "hidden" }}
+                  >
 
               <div className={styles.filterBody}>
                 <div className={styles.filterGroup}>
@@ -340,17 +353,20 @@ export default function UniversitiesPage() {
                 </div>
               </div>
 
-              <div className={styles.filterFooter}>
-                <button 
-                  className={styles.clearBtn}
-                  onClick={() => { setCountries([]); setTypes([]); setTuitionRange([0, 100000]); setSearch(""); }}
-                >
-                  Clear All
-                </button>
-                <button className={styles.applyBtn} style={{ background: "#6366f1" }}>
-                  Apply
-                </button>
-              </div>
+                  <div className={styles.filterFooter} style={{ borderTop: "1px solid rgba(255,255,255,0.1)", display: "flex", justifyContent: "flex-end", gap: "1rem" }}>
+                    <button 
+                      className={styles.clearBtn}
+                      onClick={() => { setCountries([]); setTypes([]); setTuitionRange([0, 100000]); setSearch(""); }}
+                    >
+                      Clear All
+                    </button>
+                    <button className={styles.applyBtn} style={{ background: "#6366f1" }} onClick={() => setShowFilters(false)}>
+                      Apply
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+              </AnimatePresence>
             </aside>
 
             {/* Main Content */}
@@ -404,9 +420,14 @@ export default function UniversitiesPage() {
 
                       <div className={styles.cardHeader}>
                         <div className={styles.logoWrapper}>
-                          <img src={uni.logo} alt={uni.name} className={styles.uniLogo} />
+                          <img 
+                            src={uni.logo} 
+                            alt={uni.name} 
+                            className={styles.uniLogo} 
+                            onError={(e) => { e.currentTarget.src = "https://cdn-icons-png.flaticon.com/512/8066/8066542.png"; }}
+                          />
                         </div>
-                        <div>
+                        <div style={{ paddingRight: "2.5rem" }}>
                           <h3 className={styles.uniName}>{uni.name}</h3>
                           <p className={styles.uniLocation}><MapPin size={14} style={{ display: "inline", marginRight: "4px" }} /> {uni.city}, {uni.country}</p>
                         </div>
@@ -435,7 +456,7 @@ export default function UniversitiesPage() {
                         <button onClick={() => setSelectedUni(uni)} className={styles.detailsBtn}>
                           <GraduationCap size={18} /> Details
                         </button>
-                        <Link href="/roadmaps" className={styles.guideBtn}>
+                        <Link href="/roadmaps" className="ds-btn ds-btn-primary" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", flex: 1, padding: "0.75rem", borderRadius: "12px", textDecoration: "none" }}>
                           Guide <ArrowRight size={18} />
                         </Link>
                       </div>

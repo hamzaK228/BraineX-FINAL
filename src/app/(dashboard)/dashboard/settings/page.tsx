@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Settings, User, Bell, Lock, Globe, Palette, LogOut, ChevronRight, ChevronDown } from "lucide-react";
+import { useTheme } from "next-themes";
 
 export default function SettingsPage() {
   const containerVariants = {
@@ -34,33 +35,75 @@ export default function SettingsPage() {
   ];
 
   const [activeSetting, setActiveSetting] = useState<string | null>(null);
-  const [profile, setProfile] = useState({ firstName: "", lastName: "", email: "" });
+  const [profile, setProfile] = useState({ 
+    firstName: "", lastName: "", email: "", 
+    language: "English (US)", timeZone: "Pacific Time (PT)",
+    emailNotifs: true, pushNotifs: true, weeklyDigest: false, twoFactorEnabled: false
+  });
   const [saveMsg, setSaveMsg] = useState("");
+  const [toastMsg, setToastMsg] = useState("");
+  const [passwordForm, setPasswordForm] = useState({ new: "", confirm: "" });
+  const { theme, setTheme } = useTheme();
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(""), 3000);
+  };
 
   const fetchProfile = useCallback(async () => {
     try {
-      const res = await fetch("/api/user/me");
+      const res = await fetch("/api/user/settings");
       if (res.ok) {
         const data = await res.json();
         const parts = (data.name || "").split(" ");
-        setProfile({ firstName: parts[0] || "", lastName: parts.slice(1).join(" ") || "", email: data.email || "" });
+        setProfile({ 
+          firstName: parts[0] || "", lastName: parts.slice(1).join(" ") || "", email: data.email || "",
+          language: data.language || "English (US)",
+          timeZone: data.timeZone || "Pacific Time (PT)",
+          emailNotifs: data.emailNotifs ?? true,
+          pushNotifs: data.pushNotifs ?? true,
+          weeklyDigest: data.weeklyDigest ?? false,
+          twoFactorEnabled: data.twoFactorEnabled ?? false
+        });
+        if (data.theme) setTheme(data.theme);
       }
     } catch { /* fallback */ }
-  }, []);
+  }, [setTheme]);
 
   useEffect(() => { fetchProfile(); }, [fetchProfile]);
 
-  const saveProfile = async () => {
+  const saveProfile = async (section?: string, overrides?: any) => {
     setSaveMsg("");
     try {
       const res = await fetch("/api/user/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: `${profile.firstName} ${profile.lastName}`.trim() }),
+        body: JSON.stringify({ 
+          name: `${profile.firstName} ${profile.lastName}`.trim(),
+          language: profile.language,
+          timeZone: profile.timeZone,
+          emailNotifs: profile.emailNotifs,
+          pushNotifs: profile.pushNotifs,
+          weeklyDigest: profile.weeklyDigest,
+          twoFactorEnabled: profile.twoFactorEnabled,
+          theme: theme,
+          ...overrides
+        }),
       });
-      setSaveMsg(res.ok ? "Saved!" : "Error saving");
-      setTimeout(() => setSaveMsg(""), 2000);
-    } catch { setSaveMsg("Error saving"); }
+      if (res.ok) {
+        window.dispatchEvent(new Event('profileUpdated'));
+        if (section) {
+          showToast(`${section} saved!`);
+        } else {
+          setSaveMsg("Saved!");
+          setTimeout(() => setSaveMsg(""), 2000);
+        }
+      } else {
+        if (section) showToast("Error saving"); else setSaveMsg("Error saving");
+      }
+    } catch { 
+      if (section) showToast("Error saving"); else setSaveMsg("Error saving"); 
+    }
   };
 
   const toggleSetting = (name: string) => {
@@ -88,7 +131,7 @@ export default function SettingsPage() {
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "1rem", marginTop: "0.5rem" }}>
               {saveMsg && <span style={{ fontSize: "0.85rem", color: saveMsg === "Saved!" ? "#10b981" : "#ef4444" }}>{saveMsg}</span>}
-              <button className="ds-btn ds-btn-primary" onClick={saveProfile} style={{ padding: "0.5rem 1.5rem", borderRadius: "100px", border: "none", cursor: "pointer", fontWeight: "600" }}>Save Changes</button>
+              <button className="ds-btn ds-btn-primary" onClick={() => saveProfile()} style={{ padding: "0.5rem 1.5rem", borderRadius: "100px", border: "none", cursor: "pointer", fontWeight: "600" }}>Save Changes</button>
             </div>
           </div>
         );
@@ -97,7 +140,7 @@ export default function SettingsPage() {
           <div style={{ padding: "1.5rem", borderTop: "1px solid var(--card-border)", background: "var(--bg-color)", display: "flex", flexDirection: "column", gap: "1rem" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
               <label style={{ fontSize: "0.85rem", fontWeight: "600", color: "var(--text-muted)" }}>Language</label>
-              <select style={{ padding: "0.75rem", borderRadius: "8px", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-color)", outline: "none", appearance: "none" }}>
+              <select value={profile.language} onChange={e => setProfile({...profile, language: e.target.value})} style={{ padding: "0.75rem", borderRadius: "8px", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-color)", outline: "none", appearance: "none" }}>
                 <option>English (US)</option>
                 <option>Spanish</option>
                 <option>French</option>
@@ -105,14 +148,14 @@ export default function SettingsPage() {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
               <label style={{ fontSize: "0.85rem", fontWeight: "600", color: "var(--text-muted)" }}>Time Zone</label>
-              <select style={{ padding: "0.75rem", borderRadius: "8px", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-color)", outline: "none", appearance: "none" }}>
+              <select value={profile.timeZone} onChange={e => setProfile({...profile, timeZone: e.target.value})} style={{ padding: "0.75rem", borderRadius: "8px", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-color)", outline: "none", appearance: "none" }}>
                 <option>Pacific Time (PT)</option>
                 <option>Eastern Time (ET)</option>
                 <option>Central European Time (CET)</option>
               </select>
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "0.5rem" }}>
-              <button className="ds-btn ds-btn-primary" style={{ padding: "0.5rem 1.5rem", borderRadius: "100px", border: "none", cursor: "pointer", fontWeight: "600" }}>Save Preferences</button>
+              <button className="ds-btn ds-btn-primary" onClick={() => saveProfile("Preferences")} style={{ padding: "0.5rem 1.5rem", borderRadius: "100px", border: "none", cursor: "pointer", fontWeight: "600" }}>Save Preferences</button>
             </div>
           </div>
         );
@@ -121,9 +164,24 @@ export default function SettingsPage() {
           <div style={{ padding: "1.5rem", borderTop: "1px solid var(--card-border)", background: "var(--bg-color)", display: "flex", flexDirection: "column", gap: "1rem" }}>
              <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--text-muted)" }}>Theme settings are managed by the quick toggle in the top right header. You can also select preferences here.</p>
              <div style={{ display: "flex", gap: "1rem", marginTop: "0.5rem", flexWrap: "wrap" }}>
-                {["Light", "Dark", "System"].map(theme => (
-                  <button key={theme} style={{ flex: "1 1 100px", padding: "0.75rem", borderRadius: "8px", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-color)", cursor: "pointer", fontWeight: "600" }} onMouseOver={e => e.currentTarget.style.borderColor = 'var(--text-muted)'} onMouseOut={e => e.currentTarget.style.borderColor = 'var(--card-border)'}>
-                    {theme}
+                {["Light", "Dark", "System"].map(t => (
+                  <button 
+                    key={t} 
+                    onClick={() => { setTheme(t.toLowerCase()); saveProfile("Theme", { theme: t.toLowerCase() }); }}
+                    style={{ 
+                      flex: "1 1 100px", 
+                      padding: "0.75rem", 
+                      borderRadius: "8px", 
+                      border: theme === t.toLowerCase() ? "2px solid #6366f1" : "1px solid var(--card-border)", 
+                      background: theme === t.toLowerCase() ? "rgba(99, 102, 241, 0.1)" : "var(--card-bg)", 
+                      color: "var(--text-color)", 
+                      cursor: "pointer", 
+                      fontWeight: "600" 
+                    }} 
+                    onMouseOver={e => e.currentTarget.style.borderColor = theme === t.toLowerCase() ? '#6366f1' : 'var(--text-muted)'} 
+                    onMouseOut={e => e.currentTarget.style.borderColor = theme === t.toLowerCase() ? '#6366f1' : 'var(--card-border)'}
+                  >
+                    {t}
                   </button>
                 ))}
              </div>
@@ -139,19 +197,28 @@ export default function SettingsPage() {
             <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
               <div style={{ flex: "1 1 200px", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                 <label style={{ fontSize: "0.85rem", fontWeight: "600", color: "var(--text-muted)" }}>New Password</label>
-                <input type="password" placeholder="••••••••" style={{ padding: "0.75rem", borderRadius: "8px", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-color)", outline: "none" }} />
+                <input type="password" value={passwordForm.new} onChange={e => setPasswordForm({...passwordForm, new: e.target.value})} placeholder="••••••••" style={{ padding: "0.75rem", borderRadius: "8px", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-color)", outline: "none" }} />
               </div>
               <div style={{ flex: "1 1 200px", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                 <label style={{ fontSize: "0.85rem", fontWeight: "600", color: "var(--text-muted)" }}>Confirm Password</label>
-                <input type="password" placeholder="••••••••" style={{ padding: "0.75rem", borderRadius: "8px", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-color)", outline: "none" }} />
+                <input type="password" value={passwordForm.confirm} onChange={e => setPasswordForm({...passwordForm, confirm: e.target.value})} placeholder="••••••••" style={{ padding: "0.75rem", borderRadius: "8px", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-color)", outline: "none" }} />
               </div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.5rem" }}>
-              <input type="checkbox" id="2fa" style={{ width: "16px", height: "16px", cursor: "pointer" }} />
+              <input type="checkbox" id="2fa" checked={profile.twoFactorEnabled} onChange={e => {
+                const nextVal = e.target.checked;
+                setProfile({...profile, twoFactorEnabled: nextVal});
+                saveProfile("2FA Settings", { twoFactorEnabled: nextVal });
+              }} style={{ width: "16px", height: "16px", cursor: "pointer" }} />
               <label htmlFor="2fa" style={{ fontSize: "0.9rem", color: "var(--text-color)", cursor: "pointer" }}>Enable Two-Factor Authentication (2FA)</label>
             </div>
-            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "0.5rem" }}>
-              <button className="ds-btn ds-btn-primary" style={{ padding: "0.5rem 1.5rem", borderRadius: "100px", border: "none", cursor: "pointer", fontWeight: "600", background: "#ef4444", color: "white" }}>Update Password</button>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "0.5rem", gap: "1rem" }}>
+              <button className="ds-btn ds-btn-primary" onClick={() => {
+                if (passwordForm.new.length < 6) return showToast("Password too short");
+                if (passwordForm.new !== passwordForm.confirm) return showToast("Passwords do not match");
+                saveProfile("Password", { password: passwordForm.new });
+                setPasswordForm({ new: "", confirm: "" });
+              }} style={{ padding: "0.5rem 1.5rem", borderRadius: "100px", border: "none", cursor: "pointer", fontWeight: "600", background: "#ef4444", color: "white" }}>Update Password</button>
             </div>
           </div>
         );
@@ -159,9 +226,9 @@ export default function SettingsPage() {
         return (
           <div style={{ padding: "1.5rem", borderTop: "1px solid var(--card-border)", background: "var(--bg-color)", display: "flex", flexDirection: "column", gap: "1rem" }}>
             {[
-              { id: "email", label: "Email Notifications", desc: "Receive daily updates and alerts via email.", active: true },
-              { id: "push", label: "Push Notifications", desc: "Receive immediate alerts in your browser.", active: true },
-              { id: "weekly", label: "Weekly Digest", desc: "Get a summary of your academic progress every Sunday.", active: false }
+              { id: "emailNotifs", label: "Email Notifications", desc: "Receive daily updates and alerts via email.", active: profile.emailNotifs },
+              { id: "pushNotifs", label: "Push Notifications", desc: "Receive immediate alerts in your browser.", active: profile.pushNotifs },
+              { id: "weeklyDigest", label: "Weekly Digest", desc: "Get a summary of your academic progress every Sunday.", active: profile.weeklyDigest }
             ].map(notif => (
               <div key={notif.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "1rem", borderBottom: "1px solid var(--card-border)" }}>
                 <div>
@@ -178,12 +245,10 @@ export default function SettingsPage() {
                     cursor: "pointer",
                     transition: "background 0.3s"
                   }}
-                  onClick={(e) => {
-                    const el = e.currentTarget;
-                    const isNowActive = el.style.background === "var(--card-border)";
-                    el.style.background = isNowActive ? "#3b82f6" : "var(--card-border)";
-                    const circle = el.firstChild as HTMLElement;
-                    circle.style.transform = isNowActive ? "translateX(20px)" : "translateX(2px)";
+                  onClick={() => {
+                    const nextVal = !notif.active;
+                    setProfile({ ...profile, [notif.id]: nextVal });
+                    saveProfile("Notification preferences", { [notif.id]: nextVal });
                   }}
                 >
                   <div style={{ 
@@ -202,7 +267,7 @@ export default function SettingsPage() {
               </div>
             ))}
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "0.5rem" }}>
-              <button className="ds-btn ds-btn-primary" style={{ padding: "0.5rem 1.5rem", borderRadius: "100px", border: "none", cursor: "pointer", fontWeight: "600" }}>Save Preferences</button>
+              <button className="ds-btn ds-btn-primary" onClick={() => saveProfile("Notification preferences")} style={{ padding: "0.5rem 1.5rem", borderRadius: "100px", border: "none", cursor: "pointer", fontWeight: "600" }}>Save Preferences</button>
             </div>
           </div>
         );
@@ -218,6 +283,30 @@ export default function SettingsPage() {
       variants={containerVariants}
       style={{ display: "flex", flexDirection: "column", gap: "2.5rem", maxWidth: "900px", margin: "0 auto", paddingBottom: "3rem" }}
     >
+      <AnimatePresence>
+        {toastMsg && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            style={{
+              position: "fixed",
+              top: "20px",
+              right: "20px",
+              background: "#10b981",
+              color: "white",
+              padding: "1rem 2rem",
+              borderRadius: "12px",
+              fontWeight: "600",
+              boxShadow: "0 4px 12px rgba(16, 185, 129, 0.4)",
+              zIndex: 1000
+            }}
+          >
+            {toastMsg}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div>
         <h2 style={{ fontSize: "2rem", fontWeight: "800", margin: "0 0 0.5rem 0", display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <Settings size={32} color="#64748b" /> Settings

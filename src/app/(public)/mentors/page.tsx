@@ -6,7 +6,7 @@ import { PublicHeader } from "@/components/PublicHeader";
 import { InfoModal } from "@/components/InfoModal";
 import Link from "next/link";
 import styles from "./page.module.css";
-import { Search, MapPin, User, Star, BookOpen, Sparkles, ArrowRight, MessageSquare, Briefcase, Zap, Heart } from "lucide-react";
+import { Search, MapPin, User, Star, BookOpen, Sparkles, ArrowRight, MessageSquare, Briefcase, Zap, Heart, Filter, ChevronDown } from "lucide-react";
 
 type Mentor = {
   id: string;
@@ -83,6 +83,7 @@ export default function MentorsPage() {
   const [expertises, setExpertises] = useState<string[]>([]);
   const [experiences, setExperiences] = useState<string[]>([]);
   const [openAccordions, setOpenAccordions] = useState<string[]>(['expertise', 'experience', 'price']);
+  const [showFilters, setShowFilters] = useState(false);
 
   const toggleAccordion = (id: string) => {
     setOpenAccordions(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
@@ -179,13 +180,24 @@ export default function MentorsPage() {
             
             {/* Filter Sidebar */}
             <aside className={styles.filterSidebar}>
-              <div className={styles.filterHeader}>
-                <h3 className={styles.filterHeaderTitle}>Filter Mentors</h3>
-                <span style={{ fontSize: "0.8rem", background: "#f43f5e", color: "white", padding: "0.2rem 0.6rem", borderRadius: "20px", fontWeight: 700 }}>
-                  {filteredData.length}
-                </span>
+              <div className={styles.filterHeader} onClick={() => setShowFilters(!showFilters)}>
+                <h3 className={styles.filterHeaderTitle}>
+                  <Filter size={18} /> Filters
+                  <span style={{ fontSize: "0.8rem", background: "#f43f5e", color: "white", padding: "0.2rem 0.6rem", borderRadius: "20px", fontWeight: 700, marginLeft: "0.5rem" }}>
+                    {filteredData.length}
+                  </span>
+                </h3>
+                <ChevronDown size={20} style={{ transform: showFilters ? 'rotate(180deg)' : 'none', transition: '0.3s', color: 'var(--text-muted)' }} />
               </div>
 
+              <AnimatePresence>
+                {showFilters && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }} 
+                    animate={{ height: "auto", opacity: 1 }} 
+                    exit={{ height: 0, opacity: 0 }}
+                    style={{ overflow: "hidden" }}
+                  >
               <div className={styles.filterBody}>
                 <div className={styles.filterGroup}>
                   <h4 className={styles.filterTitle}>Expertise</h4>
@@ -216,17 +228,21 @@ export default function MentorsPage() {
                 ))}
               </div>
 
-              <div className={styles.filterFooter}>
+              </div>
+              <div className={styles.filterFooter} style={{ borderTop: "1px solid rgba(255,255,255,0.1)", display: "flex", justifyContent: "flex-end", gap: "1rem" }}>
                 <button 
                   className={styles.clearBtn}
                   onClick={() => { setExpertises([]); setExperiences([]); setSearch(""); }}
                 >
                   Clear All
                 </button>
-                <button className={styles.applyBtn} style={{ background: "#f43f5e" }}>
+                <button className={styles.applyBtn} style={{ background: "#f43f5e" }} onClick={() => setShowFilters(false)}>
                   Apply
                 </button>
               </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </aside>
 
             {/* Main Content Grid */}
@@ -310,13 +326,11 @@ export default function MentorsPage() {
                           ))}
                         </div>
 
-                        <div className={styles.cardActions}>
-                          <button onClick={() => setSelectedMentor(mentor)} className={styles.bookBtn}>
-                            Book Session <ArrowRight size={18} />
-                          </button>
-                          <button className={styles.messageBtn}>
-                            <MessageSquare size={18} />
-                          </button>
+                        <div className={styles.cardActions} style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
+                          <button onClick={() => setSelectedMentor(mentor)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#f8fafc", padding: "0.75rem", borderRadius: "12px", flex: 1, fontWeight: 600, cursor: "pointer", display: "flex", justifyContent: "center", alignItems: "center", gap: "0.5rem" }}><User size={18} /> Details</button>
+                          <Link href="/dashboard" className="ds-btn ds-btn-primary" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.75rem", borderRadius: "12px", flex: 1, textDecoration: "none", background: "#f43f5e", color: "white", border: "none" }}>
+                            Book <ArrowRight size={18} />
+                          </Link>
                         </div>
                       </motion.div>
                     ))}
