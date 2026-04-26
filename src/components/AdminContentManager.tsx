@@ -80,11 +80,11 @@ export function AdminContentManager() {
       </div>
 
       {/* Toolbar */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
         <div style={{ position: "relative" }}>
           <Search size={16} style={{ position: "absolute", left: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
           <input placeholder={`Search ${activeType.label}...`} value={search} onChange={e => setSearch(e.target.value)}
-            style={{ padding: "0.6rem 0.6rem 0.6rem 2.25rem", borderRadius: "8px", border: "1px solid var(--card-border)", background: "var(--bg-color)", color: "var(--text-color)", width: "280px", outline: "none" }} />
+            style={{ padding: "0.6rem 0.6rem 0.6rem 2.25rem", borderRadius: "8px", border: "1px solid var(--card-border)", background: "var(--bg-color)", color: "var(--text-color)", width: "100%", maxWidth: "280px", outline: "none" }} />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
           <span style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>{pagination.total} items</span>
@@ -99,7 +99,8 @@ export function AdminContentManager() {
         {loading ? <p style={{ textAlign: "center", padding: "2rem", color: "var(--text-muted)" }}>Loading...</p> : items.length === 0 ? (
           <p style={{ textAlign: "center", padding: "2rem", color: "var(--text-muted)" }}>No {activeType.label.toLowerCase()} found. Click &quot;Add&quot; to create one.</p>
         ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <div className="responsive-table-container">
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "600px" }}>
             <thead>
               <tr style={{ borderBottom: "1px solid var(--card-border)", color: "var(--text-muted)", fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "1px" }}>
                 {activeType.fields.slice(0, 4).map(f => <th key={f} style={{ padding: "0.75rem 0.5rem", fontWeight: "600", textAlign: "left" }}>{f}</th>)}
@@ -122,6 +123,7 @@ export function AdminContentManager() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
         {pagination.totalPages > 1 && (
           <div style={{ display: "flex", justifyContent: "center", gap: "0.5rem", marginTop: "1rem" }}>

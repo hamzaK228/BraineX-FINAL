@@ -121,7 +121,7 @@ export default function DashboardPage() {
         {/* My Goals Tracker */}
         <motion.div variants={itemVariants} style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
           <ComfortCard style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginBottom: "2rem" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                 <span style={{ fontSize: "1.5rem" }}>🎯</span>
                 <h3 style={{ margin: 0, fontSize: "1.4rem", fontWeight: "700" }}>My Goals Tracker</h3>
@@ -147,7 +147,7 @@ export default function DashboardPage() {
                       {goal.completed ? <CheckCircle2 color="#10b981" size={28} /> : <Circle color="var(--text-muted)" size={28} />}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginBottom: "0.5rem" }}>
                         <h4 style={{ margin: 0, fontSize: "1.1rem", textDecoration: goal.completed ? "line-through" : "none", color: goal.completed ? "var(--text-muted)" : "var(--text-color)" }}>
                           {goal.text}
                         </h4>
@@ -185,7 +185,7 @@ export default function DashboardPage() {
               <h3 style={{ margin: 0, fontSize: "1.4rem", fontWeight: "700" }}>Upcoming Deadlines</h3>
             </div>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-              <li style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--card-border)", paddingBottom: "1.5rem" }}>
+              <li style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", borderBottom: "1px solid var(--card-border)", paddingBottom: "1.5rem" }}>
                 <div>
                   <div style={{ fontWeight: "700", fontSize: "1.1rem", marginBottom: "0.3rem" }}>MIT Research Grant</div>
                   <div style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>Application Submission</div>
@@ -194,7 +194,7 @@ export default function DashboardPage() {
                   In 2 days
                 </div>
               </li>
-              <li style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <li style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
                 <div>
                   <div style={{ fontWeight: "700", fontSize: "1.1rem", marginBottom: "0.3rem" }}>DeepMind AI Fellowship</div>
                   <div style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>Recommendation Letters</div>
@@ -213,14 +213,14 @@ export default function DashboardPage() {
               <h3 style={{ margin: 0, fontSize: "1.4rem", fontWeight: "700" }}>Suggested for You</h3>
             </div>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-              <li style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-color)", border: "1px solid var(--card-border)", padding: "1.25rem", borderRadius: "12px" }}>
+              <li style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", background: "var(--bg-color)", border: "1px solid var(--card-border)", padding: "1.25rem", borderRadius: "12px" }}>
                 <div>
                   <div style={{ fontWeight: "700", fontSize: "1.05rem", marginBottom: "0.3rem" }}>Y Combinator Matching</div>
                   <div style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Matches your Entrepreneurship goal</div>
                 </div>
                 <Link href="#" style={{ color: "#6366f1", background: "rgba(99,102,241,0.1)", padding: "0.5rem", borderRadius: "8px", display: "flex" }}><ArrowRight size={20} /></Link>
               </li>
-              <li style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-color)", border: "1px solid var(--card-border)", padding: "1.25rem", borderRadius: "12px" }}>
+              <li style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", background: "var(--bg-color)", border: "1px solid var(--card-border)", padding: "1.25rem", borderRadius: "12px" }}>
                 <div>
                   <div style={{ fontWeight: "700", fontSize: "1.05rem", marginBottom: "0.3rem" }}>Intro to Quantum Computing</div>
                   <div style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Based on your recent roadmap</div>
@@ -238,7 +238,7 @@ export default function DashboardPage() {
         {/* Saved Universities */}
         <motion.div variants={itemVariants} style={{ display: "flex" }}>
           <ComfortCard style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginBottom: "2rem" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                 <span style={{ fontSize: "1.5rem" }}>🏛️</span>
                 <h3 style={{ margin: 0, fontSize: "1.4rem", fontWeight: "700" }}>Saved Universities</h3>
@@ -250,7 +250,7 @@ export default function DashboardPage() {
                 { name: "Stanford University", location: "California, USA", rank: "#3 Global", color: "#f43f5e" },
                 { name: "University of Oxford", location: "Oxford, UK", rank: "#1 Global", color: "#3b82f6" }
               ].map((uni, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.25rem", border: "1px solid var(--card-border)", borderRadius: "16px", background: "var(--bg-color)" }}>
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", padding: "1.25rem", border: "1px solid var(--card-border)", borderRadius: "16px", background: "var(--bg-color)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
                     <div style={{ padding: "0.75rem", background: `rgba(99,102,241,0.1)`, color: "#6366f1", borderRadius: "12px" }}>
                       <Building size={24} />
@@ -270,7 +270,7 @@ export default function DashboardPage() {
         {/* Saved Programs */}
         <motion.div variants={itemVariants} style={{ display: "flex" }}>
           <ComfortCard style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginBottom: "2rem" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                 <span style={{ fontSize: "1.5rem" }}>🎓</span>
                 <h3 style={{ margin: 0, fontSize: "1.4rem", fontWeight: "700" }}>Saved Programs</h3>
@@ -282,7 +282,7 @@ export default function DashboardPage() {
                 { name: "MS in Computer Science", uni: "Stanford University", deadline: "Dec 1", color: "#10b981" },
                 { name: "MBA in Finance", uni: "Wharton School", deadline: "Sep 15", color: "#f59e0b" }
               ].map((prog, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.25rem", border: "1px solid var(--card-border)", borderRadius: "16px", background: "var(--bg-color)" }}>
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", padding: "1.25rem", border: "1px solid var(--card-border)", borderRadius: "16px", background: "var(--bg-color)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
                     <div style={{ padding: "0.75rem", background: `rgba(16,185,129,0.1)`, color: "#10b981", borderRadius: "12px" }}>
                       <GraduationCap size={24} />
@@ -307,7 +307,7 @@ export default function DashboardPage() {
         {/* Weekly Schedule */}
         <motion.div variants={itemVariants} style={{ display: "flex" }}>
         <ComfortCard>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginBottom: "2rem" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
               <span style={{ fontSize: "1.5rem" }}>📅</span>
               <h3 style={{ margin: 0, fontSize: "1.4rem", fontWeight: "700" }}>Weekly Schedule</h3>
@@ -332,7 +332,7 @@ export default function DashboardPage() {
                 flexDirection: "column",
                 minHeight: "150px"
               }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginBottom: "1rem" }}>
                   <span style={{ fontSize: "0.9rem", color: d.isToday ? "#6366f1" : "var(--text-muted)", fontWeight: "600" }}>{d.day}</span>
                   <span style={{ fontSize: "1.2rem", fontWeight: "800", color: d.isToday ? "#6366f1" : "var(--text-color)" }}>{d.date}</span>
                 </div>
@@ -354,7 +354,7 @@ export default function DashboardPage() {
         {/* Important Dates Calendar */}
         <motion.div variants={itemVariants} style={{ display: "flex" }}>
           <ComfortCard style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginBottom: "2rem" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                 <span style={{ fontSize: "1.5rem" }}>🗓️</span>
                 <h3 style={{ margin: 0, fontSize: "1.4rem", fontWeight: "700" }}>Important Dates</h3>
@@ -364,7 +364,7 @@ export default function DashboardPage() {
             
             {/* Minimal Calendar View */}
             <div style={{ background: "var(--bg-color)", borderRadius: "16px", padding: "1.5rem", border: "1px solid var(--card-border)", marginBottom: "1.5rem" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginBottom: "1rem" }}>
                 <h4 style={{ margin: 0, fontSize: "1.1rem" }}>October 2024</h4>
                 <div style={{ display: "flex", gap: "0.5rem" }}>
                   <button style={{ background: "var(--card-border)", border: "none", borderRadius: "50%", width: "24px", height: "24px", cursor: "pointer", color: "var(--text-color)" }}>&lt;</button>
@@ -424,7 +424,7 @@ export default function DashboardPage() {
         {/* My Progress */}
         <motion.div variants={itemVariants} style={{ display: "flex" }}>
           <ComfortCard style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginBottom: "2rem" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                 <span style={{ fontSize: "1.5rem" }}>📊</span>
                 <h3 style={{ margin: 0, fontSize: "1.4rem", fontWeight: "700" }}>Overall Progress</h3>
@@ -475,7 +475,7 @@ export default function DashboardPage() {
         {/* Daily Tasks */}
         <motion.div variants={itemVariants} style={{ display: "flex" }}>
           <ComfortCard style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginBottom: "2rem" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                 <span style={{ fontSize: "1.5rem" }}>✅</span>
                 <h3 style={{ margin: 0, fontSize: "1.4rem", fontWeight: "700" }}>Daily Tasks</h3>
@@ -505,7 +505,7 @@ export default function DashboardPage() {
         {/* Recommended Resources */}
         <motion.div variants={itemVariants} style={{ display: "flex" }}>
           <ComfortCard style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginBottom: "2rem" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                 <span style={{ fontSize: "1.5rem" }}>📚</span>
                 <h3 style={{ margin: 0, fontSize: "1.4rem", fontWeight: "700" }}>Learning Resources</h3>
@@ -538,7 +538,7 @@ export default function DashboardPage() {
         {/* Active Roadmaps */}
         <motion.div variants={itemVariants} style={{ display: "flex" }}>
           <ComfortCard style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginBottom: "2rem" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                 <span style={{ fontSize: "1.5rem" }}>🗺️</span>
                 <h3 style={{ margin: 0, fontSize: "1.4rem", fontWeight: "700" }}>Active Roadmaps</h3>
@@ -591,7 +591,7 @@ export default function DashboardPage() {
         {/* Activity & Streak Heatmap */}
         <motion.div variants={itemVariants} style={{ display: "flex" }}>
           <ComfortCard style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginBottom: "2rem" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                 <span style={{ fontSize: "1.5rem" }}>📈</span>
                 <h3 style={{ margin: 0, fontSize: "1.4rem", fontWeight: "700" }}>Activity Tracker</h3>

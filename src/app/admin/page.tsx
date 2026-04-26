@@ -83,14 +83,14 @@ export default function AdminDashboard() {
     <div style={{ minHeight: "100vh", background: "var(--bg-color)", display: "flex", flexDirection: "column" }}>
       
       {/* Top Navigation */}
-      <nav style={{ background: "rgba(255, 255, 255, 0.05)", backdropFilter: "blur(20px)", borderBottom: "1px solid var(--card-border)", padding: "1rem 2rem", display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, zIndex: 100 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
+      <nav className="admin-nav" style={{ background: "rgba(255, 255, 255, 0.05)", backdropFilter: "blur(20px)", borderBottom: "1px solid var(--card-border)", padding: "1rem 2rem", position: "sticky", top: 0, zIndex: 100 }}>
+        <div className="admin-nav-left" style={{ gap: "2rem" }}>
           <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <span style={{ fontSize: "1.5rem", fontWeight: "800", color: "var(--text-color)" }}>Braine<span style={{ color: "#f43f5e" }}>X</span></span>
             <span style={{ background: "rgba(244,63,94,0.1)", color: "#f43f5e", padding: "0.2rem 0.5rem", borderRadius: "4px", fontSize: "0.7rem", fontWeight: "bold", letterSpacing: "1px", textTransform: "uppercase" }}>Admin</span>
           </Link>
           
-          <div style={{ display: "flex", gap: "1rem" }}>
+          <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
             {["overview", "users", "mentors", "content", "settings"].map((tab) => (
               <button 
                 key={tab}
@@ -116,10 +116,10 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
+        <div className="admin-nav-right" style={{ gap: "1.5rem" }}>
           <div style={{ position: "relative" }}>
             <Search size={18} color="var(--text-muted)" style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)" }} />
-            <input type="text" placeholder="Global Admin Search..." style={{ padding: "0.5rem 1rem 0.5rem 2.5rem", borderRadius: "100px", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-color)", fontSize: "0.9rem", width: "250px", outline: "none" }} />
+            <input className="responsive-search" type="text" placeholder="Global Admin Search..." style={{ padding: "0.5rem 1rem 0.5rem 2.5rem", borderRadius: "100px", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-color)", fontSize: "0.9rem", outline: "none" }} />
           </div>
           <ThemeToggle />
           <button style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", position: "relative" }}>
@@ -137,7 +137,7 @@ export default function AdminDashboard() {
       <main style={{ padding: "2rem", maxWidth: "1600px", margin: "0 auto", width: "100%", flex: 1, display: "flex", flexDirection: "column", gap: "2rem" }}>
         
         {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "1rem" }}>
           <div>
             <h1 style={{ fontSize: "2rem", fontWeight: "800", margin: "0 0 0.5rem 0", color: "var(--text-color)", textTransform: "capitalize" }}>{activeTab} Dashboard</h1>
             <p style={{ margin: 0, color: "var(--text-muted)" }}>Welcome back, Admin. Manage your {activeTab} here.</p>
@@ -188,7 +188,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Two Column Layout */}
-            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "1.5rem" }}>
+            <div className="admin-grid">
               {/* Left Column: Recent Users Table */}
               <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "20px", padding: "1.5rem", boxShadow: "0 10px 30px rgba(0,0,0,0.02)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
@@ -196,7 +196,7 @@ export default function AdminDashboard() {
                   <button onClick={() => setActiveTab('users')} style={{ background: "none", border: "none", color: "#f43f5e", fontWeight: "600", cursor: "pointer", fontSize: "0.9rem" }}>View All</button>
                 </div>
                 
-                <div style={{ overflowX: "auto" }}>
+                <div className="responsive-table-container">
                   <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
                     <thead>
                       <tr style={{ borderBottom: "1px solid var(--card-border)", color: "var(--text-muted)", fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "1px" }}>
@@ -276,7 +276,7 @@ export default function AdminDashboard() {
 
         {activeTab === "users" && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "20px", padding: "2rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "2rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", marginBottom: "2rem" }}>
               <div style={{ position: "relative" }}>
                 <Search size={18} color="var(--text-muted)" style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)" }} />
                 <input type="text" placeholder="Search 12,450 users..." style={{ padding: "0.75rem 1rem 0.75rem 2.5rem", borderRadius: "8px", border: "1px solid var(--card-border)", background: "var(--bg-color)", color: "var(--text-color)", width: "300px", outline: "none" }} />
@@ -296,7 +296,8 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
+            <div className="responsive-table-container">
+              <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid var(--card-border)", color: "var(--text-muted)", fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "1px" }}>
                   <th style={{ padding: "1rem 0.5rem", fontWeight: "600" }}>User</th>
@@ -338,6 +339,7 @@ export default function AdminDashboard() {
                 ))}
               </tbody>
             </table>
+            </div>
           </motion.div>
         )}
 
