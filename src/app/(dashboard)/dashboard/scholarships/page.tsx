@@ -159,7 +159,7 @@ export default function ScholarshipsPage() {
                     width: "48px", 
                     height: "48px", 
                     borderRadius: "16px", 
-                    background: "white", 
+                    background: "var(--bg-color)", 
                     border: "1px solid var(--card-border)",
                     display: "flex", 
                     alignItems: "center", 
@@ -219,7 +219,7 @@ export default function ScholarshipsPage() {
 
               <div style={{ marginTop: "auto", display: "flex", gap: "0.5rem" }}>
                 {s.link && (
-                  <a href={s.link} target="_blank" rel="noopener noreferrer" style={{ flex: 1, textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.75rem", borderRadius: "12px", background: "#f59e0b", color: "white", fontSize: "0.9rem", fontWeight: "600", transition: "all 0.2s", border: "none", boxShadow: "0 4px 10px rgba(245, 158, 11, 0.2)" }} onMouseOver={e => e.currentTarget.style.transform = "translateY(-2px)"} onMouseOut={e => e.currentTarget.style.transform = "translateY(0)"}>
+                  <a href={s.link} target="_blank" rel="noopener noreferrer" style={{ flex: 1, textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.75rem", borderRadius: "12px", background: "#f59e0b", color: "white", fontSize: "0.9rem", fontWeight: "600", transition: "all 0.2s", border: "none", boxShadow: "0 4px 10px rgba(245, 158, 11, var(--shadow-opacity))" }} onMouseOver={e => e.currentTarget.style.transform = "translateY(-2px)"} onMouseOut={e => e.currentTarget.style.transform = "translateY(0)"}>
                     <ExternalLink size={16} /> Visit Page
                   </a>
                 )}
@@ -251,7 +251,7 @@ export default function ScholarshipsPage() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              style={{ background: "var(--bg-color)", border: "1px solid var(--card-border)", borderRadius: "24px", padding: "2rem", width: "100%", maxWidth: "500px", position: "relative", zIndex: 1, boxShadow: "0 20px 40px rgba(0,0,0,0.2)" }}
+              style={{ background: "var(--bg-color)", border: "1px solid var(--card-border)", borderRadius: "24px", padding: "2rem", width: "100%", maxWidth: "500px", position: "relative", zIndex: 1, boxShadow: "0 20px 40px rgba(0,0,0,var(--shadow-opacity))" }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
                 <h3 style={{ margin: 0, fontSize: "1.5rem" }}>Add Scholarship</h3>

@@ -10,7 +10,11 @@
   --card-bg: rgba(255, 255, 255, 0.8);
   --card-border: rgba(226, 232, 240, 0.8);
   --header-bg: rgba(255, 255, 255, 0.9);
-  --primary-glow: rgba(99, 102, 241, 0.2);
+  --primary-glow: rgba(99, 102, 241, 0.05);
+  --overlay-bg: rgba(255, 255, 255, 0.6);
+  --section-bg-1: rgba(99, 102, 241, 0.03);
+  --section-bg-2: rgba(168, 85, 247, 0.03);
+  --shadow-opacity: 0.05;
 }
 
 .dark {
@@ -22,6 +26,10 @@
   --card-border: rgba(255, 255, 255, 0.1);
   --header-bg: rgba(2, 6, 23, 0.8);
   --primary-glow: rgba(99, 102, 241, 0.1);
+  --overlay-bg: rgba(0, 0, 0, 0.85);
+  --section-bg-1: rgba(99, 102, 241, 0.05);
+  --section-bg-2: rgba(168, 85, 247, 0.05);
+  --shadow-opacity: 0.4;
 }
 
 * {

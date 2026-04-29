@@ -7,6 +7,7 @@ const schema = z.object({
   title: z.string().min(1),
   description: z.string().optional(),
   orderIndex: z.number().optional(),
+  status: z.string().optional(),
 });
 
 export async function POST(
@@ -26,8 +27,13 @@ export async function POST(
   if (!parsed.success)
     return NextResponse.json({ error: (parsed.error as any).errors[0].message }, { status: 400 });
 
+  const { status, ...rest } = parsed.data;
   const step = await prisma.roadmapStep.create({
-    data: { ...parsed.data, roadmapId: id },
+    data: { 
+      ...rest, 
+      roadmapId: id,
+      isCompleted: status === "completed"
+    },
   });
   return NextResponse.json(step, { status: 201 });
 }

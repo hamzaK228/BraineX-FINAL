@@ -19,6 +19,8 @@ interface InfoModalProps {
   stats?: { label: string; value: string }[];
   ctaLink?: string;
   ctaLabel?: string;
+  onCtaClick?: () => void;
+  steps?: { title: string; description: string }[];
 }
 
 export function InfoModal({ 
@@ -35,7 +37,9 @@ export function InfoModal({
   specialFeatures,
   stats,
   ctaLink,
-  ctaLabel
+  ctaLabel,
+  onCtaClick,
+  steps
 }: InfoModalProps) {
   const [session, setSession] = useState<any>(null);
 
@@ -103,6 +107,26 @@ export function InfoModal({
                 </div>
               )}
 
+              {steps && steps.length > 0 && (
+                <div className={styles.stepsBox}>
+                  <div className={styles.stepsHeader}>
+                    <Target size={18} color="#06b6d4" fill="#06b6d4" />
+                    <h3>LEARNING PATH</h3>
+                  </div>
+                  <div className={styles.stepsTimeline}>
+                    {steps.map((step, i) => (
+                      <div key={i} className={styles.stepItem}>
+                        <div className={styles.stepNumber}>{i + 1}</div>
+                        <div className={styles.stepInfo}>
+                          <h4 className={styles.stepTitle}>{step.title}</h4>
+                          <p className={styles.stepDesc}>{step.description}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className={styles.tipsBox}>
                 <div className={styles.tipsHeader}>
                   <Zap size={18} color="#f59e0b" fill="#f59e0b" />
@@ -130,11 +154,17 @@ export function InfoModal({
               )}
             </div>
 
-            {ctaLink && (
+            {(ctaLink || onCtaClick) && (
               <div className={styles.ctaBox}>
-                <Link href={ctaLink} target="_blank" className={styles.ctaBtn}>
-                  {ctaLabel || "Learn More"} <ArrowRight size={16} />
-                </Link>
+                {onCtaClick ? (
+                  <button onClick={onCtaClick} className={styles.ctaBtn}>
+                    {ctaLabel || "Learn More"} <ArrowRight size={16} />
+                  </button>
+                ) : (
+                  <Link href={ctaLink!} target="_blank" className={styles.ctaBtn}>
+                    {ctaLabel || "Learn More"} <ArrowRight size={16} />
+                  </Link>
+                )}
               </div>
             )}
 

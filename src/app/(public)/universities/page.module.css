@@ -10,9 +10,9 @@
 .searchBox {
   max-width: 650px;
   margin: 0 auto;
-  background: rgba(30, 41, 59, 0.7);
+  background: var(--card-bg);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--card-border);
   padding: 0.6rem;
   border-radius: 20px;
   display: flex;
@@ -26,13 +26,13 @@
   flex: 1;
   background: transparent;
   border: none;
-  color: white;
+  color: var(--text-color);
   font-size: 1rem;
   outline: none;
 }
 
 .searchInput::placeholder {
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .searchBtn {
@@ -57,9 +57,9 @@
 
 /* Horizontal Filter Bar */
 .filterBar {
-  background: rgba(30, 41, 59, 0.5);
+  background: var(--card-bg);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--card-border);
   padding: 1.25rem 2rem;
   border-radius: 24px;
   display: flex;
@@ -70,7 +70,7 @@
 }
 
 .filterBar:hover {
-  background: rgba(30, 41, 59, 0.8);
+  background: var(--card-bg);
   border-color: rgba(99, 102, 241, 0.4);
 }
 
@@ -82,7 +82,7 @@
 
 .filterBarTitle {
   font-weight: 700;
-  color: white;
+  color: var(--text-color);
   font-size: 1.1rem;
   display: flex;
   align-items: center;
@@ -98,8 +98,8 @@
 }
 
 .expandedFilters {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--bg-color);
+  border: 1px solid var(--card-border);
   border-top: none;
   border-radius: 0 0 24px 24px;
   padding: 2.5rem;
@@ -131,14 +131,14 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 0.95rem;
   cursor: pointer;
   transition: 0.2s;
 }
 
 .checkLabel:hover {
-  color: white;
+  color: var(--text-color);
 }
 
 .checkLabel input[type="checkbox"] {
@@ -149,11 +149,11 @@
 
 .filterSelect {
   width: 100%;
-  background: rgba(30, 41, 59, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   padding: 0.75rem 1rem;
   border-radius: 12px;
-  color: white;
+  color: var(--text-color);
   outline: none;
   cursor: pointer;
 }
@@ -166,7 +166,7 @@
 }
 
 .resultsText {
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 0.95rem;
 }
 
@@ -177,7 +177,7 @@
 }
 
 .sortLabel {
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.85rem;
   font-weight: 600;
 }
@@ -190,9 +190,9 @@
 }
 
 .card {
-  background: rgba(30, 41, 59, 0.4);
+  background: var(--card-bg);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--card-border);
   border-radius: 28px;
   padding: 1.75rem;
   position: relative;
@@ -202,7 +202,7 @@
 
 .card:hover {
   transform: translateY(-8px);
-  background: rgba(30, 41, 59, 0.6);
+  background: var(--card-bg);
   border-color: rgba(99, 102, 241, 0.3);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
 }
@@ -211,19 +211,19 @@
   position: absolute;
   top: 1.25rem;
   left: 1.25rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--card-border);
   padding: 0.3rem 0.75rem;
   border-radius: 10px;
   font-size: 0.85rem;
   font-weight: 800;
   color: #6366f1;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--card-border);
   z-index: 2;
 }
 
 .top10 {
   background: linear-gradient(135deg, #fbbf24, #d97706);
-  color: white;
+  color: var(--text-color);
   border: none;
 }
 
@@ -273,13 +273,13 @@
 .uniName {
   font-size: 1.15rem;
   font-weight: 700;
-  color: white;
+  color: var(--text-color);
   line-height: 1.3;
   margin-bottom: 0.25rem;
 }
 
 .uniLocation {
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 0.85rem;
   display: flex;
   align-items: center;
@@ -292,7 +292,7 @@
   gap: 1rem;
   margin-bottom: 1.5rem;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--card-border);
   border-radius: 16px;
 }
 
@@ -303,7 +303,7 @@
 
 .detailLabel {
   font-size: 0.7rem;
-  color: #64748b;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 600;
@@ -311,7 +311,7 @@
 
 .detailValue {
   font-size: 0.95rem;
-  color: white;
+  color: var(--text-color);
   font-weight: 700;
 }
 
@@ -338,9 +338,9 @@
 
 .detailsBtn {
   flex: 1;
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--card-border);
+  color: var(--text-color);
+  border: 1px solid var(--card-border);
   padding: 0.75rem;
   border-radius: 14px;
   font-weight: 600;
@@ -353,7 +353,7 @@
 }
 
 .detailsBtn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--card-border);
 }
 
 .guideBtn {

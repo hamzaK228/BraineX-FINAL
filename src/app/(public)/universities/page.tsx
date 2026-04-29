@@ -1051,14 +1051,14 @@ export default function UniversitiesPage() {
           ]}
         />
       )}
-      <main id="mainContent" role="main" style={{ paddingTop: "80px", minHeight: "100vh", background: "#0f172a" }}>
+      <main id="mainContent" role="main" style={{ paddingTop: "80px", minHeight: "100vh", background: "var(--bg-color)" }}>
         
         <section className={styles.heroSection}>
           <div className="container" style={{ maxWidth: "800px" }}>
             <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="section-title gradient-text" style={{ fontSize: "clamp(2.5rem, 6vw, 4.5rem)", marginBottom: "1rem", fontWeight: 800 }}>
               Top Universities Worldwide
             </motion.h1>
-            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} style={{ fontSize: "1.25rem", color: "#94a3b8", marginBottom: "3rem", fontWeight: 500 }}>
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} style={{ fontSize: "1.25rem", color: "var(--text-muted)", marginBottom: "3rem", fontWeight: 500 }}>
               Explore and compare the world's best {loading ? "1,500+" : universitiesData.length} universities. Find your perfect academic home.
             </motion.p>
 
@@ -1076,7 +1076,7 @@ export default function UniversitiesPage() {
           </div>
         </section>
 
-        <section style={{ background: "rgba(15, 23, 42, 0.4)" }}>
+        <section style={{ background: "var(--bg-color)" }}>
           <div className={`container ${styles.layout}`}>
             
             <div style={{ maxWidth: "1280px", width: "100%", margin: "0 auto" }}>
@@ -1205,7 +1205,7 @@ export default function UniversitiesPage() {
               {loading && (
                 <div style={{ textAlign: "center", padding: "8rem 2rem" }}>
                   <div className={styles.loader}></div>
-                  <p style={{ color: "#94a3b8", marginTop: "1rem" }}>Fetching global university database...</p>
+                  <p style={{ color: "var(--text-muted)", marginTop: "1rem" }}>Fetching global university database...</p>
                 </div>
               )}
 

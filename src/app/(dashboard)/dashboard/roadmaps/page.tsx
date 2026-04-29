@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Map, Flag, CheckCircle2, Circle, Lock, Plus, X, ArrowLeft, MoreVertical, Route, Trash2, Search } from "lucide-react";
+import { Map, Flag, CheckCircle2, Circle, Lock, Plus, X, ArrowLeft, MoreVertical, Route, Trash2, Search, Sparkles } from "lucide-react";
 
 export default function RoadmapsPage() {
   const containerVariants = {
@@ -29,7 +29,19 @@ export default function RoadmapsPage() {
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
-          setRoadmaps(data.map((rm: any) => ({ id: rm.id, title: rm.title, desc: rm.description || "", iconColor: rm.color || "#8b5cf6", steps: (rm.steps || []).map((s: any) => ({ id: s.id, title: s.title, desc: s.description || "", status: s.status, date: s.date || "TBD" })) })));
+          setRoadmaps(data.map((rm: any) => ({ 
+            id: rm.id, 
+            title: rm.title, 
+            desc: rm.description || "", 
+            iconColor: rm.color || "#8b5cf6", 
+            steps: (rm.steps || []).map((s: any) => ({ 
+              id: s.id, 
+              title: s.title, 
+              desc: s.description || "", 
+              status: s.isCompleted ? "completed" : "in-progress", 
+              date: s.date || "TBD" 
+            })) 
+          })));
         }
       }
     } catch { /* fallback */ }
@@ -37,7 +49,7 @@ export default function RoadmapsPage() {
 
   useEffect(() => { fetchRoadmaps(); }, [fetchRoadmaps]);
 
-  const [activeRoadmapId, setActiveRoadmapId] = useState<number | null>(null);
+  const [activeRoadmapId, setActiveRoadmapId] = useState<string | number | null>(null);
   const [filter, setFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -77,17 +89,17 @@ export default function RoadmapsPage() {
     } catch { /* silent */ }
   };
 
-  const markComplete = async (roadmapId: number, stepId: number) => {
+  const markComplete = async (roadmapId: string | number, stepId: string | number) => {
     setRoadmaps(roadmaps.map(rm => rm.id === roadmapId ? { ...rm, steps: rm.steps.map((step: any) => step.id === stepId ? { ...step, status: "completed" } : step) } : rm));
-    try { await fetch(`/api/roadmaps/${roadmapId}/steps/${stepId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "completed" }) }); } catch { /* silent */ }
+    try { await fetch(`/api/roadmaps/${roadmapId}/steps/${stepId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isCompleted: true }) }); } catch { /* silent */ }
   };
 
-  const deleteRoadmap = async (id: number) => {
+  const deleteRoadmap = async (id: string | number) => {
     setRoadmaps(roadmaps.filter(rm => rm.id !== id));
     try { await fetch(`/api/roadmaps/${id}`, { method: "DELETE" }); } catch { /* silent */ }
   };
 
-  const deleteStep = async (roadmapId: number, stepId: number) => {
+  const deleteStep = async (roadmapId: string | number, stepId: string | number) => {
     setRoadmaps(roadmaps.map(rm => rm.id === roadmapId ? { ...rm, steps: rm.steps.filter((step: any) => step.id !== stepId) } : rm));
     try { await fetch(`/api/roadmaps/${roadmapId}/steps/${stepId}`, { method: "DELETE" }); } catch { /* silent */ }
   };
@@ -99,6 +111,244 @@ export default function RoadmapsPage() {
   };
 
   const activeRoadmap = roadmaps.find(rm => rm.id === activeRoadmapId);
+
+  const ELITE_TEMPLATES = [
+    {
+      id: "t1",
+      title: "Cybersecurity Analyst",
+      desc: "Protect systems and networks from digital attacks.",
+      color: "#ef4444",
+      steps: [
+        { title: "Networking Fundamentals", desc: "TCP/IP, OSI, and Subnetting. Resources: Professor Messer (YouTube), Cisco Networking Academy, Wireshark Docs." },
+        { title: "Linux for Security", desc: "Bash scripting and system admin. Resources: OverTheWire (Bandit), Linux Journey, TryHackMe Linux Room." },
+        { title: "Web Vulnerabilities", desc: "OWASP Top 10 and Burp Suite. Resources: PortSwigger Academy, OWASP Documentation." },
+        { title: "Penetration Testing", desc: "Exploitation frameworks and scanning. Resources: Metasploit Unleashed, Hack The Box." },
+        { title: "Incident Response", desc: "Threat hunting and log analysis. Resources: SANS Institute Reading Room, Blue Team Labs Online." }
+      ]
+    },
+    {
+      id: "t2",
+      title: "Machine Learning Engineer",
+      desc: "Dive deep into Python and neural networks.",
+      color: "#3b82f6",
+      steps: [
+        { title: "Mathematics for AI", desc: "Linear Algebra, Calculus, and Statistics. Resources: Khan Academy, 3Blue1Brown, MIT OpenCourseWare." },
+        { title: "Python for Data Science", desc: "NumPy, Pandas, and Matplotlib. Resources: Kaggle Courses, Real Python, Scikit-learn Docs." },
+        { title: "Deep Learning Foundations", desc: "Neural Networks and Backpropagation. Resources: Fast.ai, DeepLearning.AI (Coursera)." },
+        { title: "Computer Vision / NLP", desc: "Specializing in visual or text data. Resources: Stanford CS231n, Hugging Face Course." },
+        { title: "MLOps & Deployment", desc: "Model versioning and serving. Resources: Made With ML, Docker Docs." }
+      ]
+    },
+    {
+      id: "t3",
+      title: "Full-Stack Web3 Developer",
+      desc: "Build decentralized applications with Solidity.",
+      color: "#10b981",
+      steps: [
+        { title: "Frontend Mastery", desc: "Modern React and Next.js. Resources: Beta React Docs, Vercel Academy." },
+        { title: "Blockchain Fundamentals", desc: "Cryptography and Consensus. Resources: Whiteboard Crypto, Bitcoin Whitepaper." },
+        { title: "Solidity & Smart Contracts", desc: "Ethereum development. Resources: CryptoZombies, SpeedRunEthereum." },
+        { title: "DeFi & Tokenomics", desc: "Liquidity pools and DEXs. Resources: Uniswap Docs, Finematics (YouTube)." },
+        { title: "Security Auditing", desc: "Identifying reentrancy and overflows. Resources: Immunefi Bug Bounty, OpenZeppelin Defender." }
+      ]
+    },
+    {
+      id: "t4",
+      title: "Cloud Solutions Architect",
+      desc: "Design scalable cloud infrastructure on AWS.",
+      color: "#f59e0b",
+      steps: [
+        { title: "Cloud Fundamentals", desc: "Virtualization and IaaS/PaaS. Resources: AWS Cloud Practitioner Essentials." },
+        { title: "Compute & Networking", desc: "EC2, VPC, and Load Balancing. Resources: A Cloud Guru, AWS Whitepapers." },
+        { title: "Serverless & Database", desc: "Lambda and DynamoDB. Resources: Serverless Land, AWS Documentation." },
+        { title: "Infrastructure as Code", desc: "Terraform and CloudFormation. Resources: HashiCorp Learn, Terraform Weekly." },
+        { title: "Well-Architected Framework", desc: "Cost, Performance, and Security. Resources: AWS Architecture Center." }
+      ]
+    },
+    {
+      id: "t5",
+      title: "Quantitative Finance Analyst",
+      desc: "Apply math and coding to financial markets.",
+      color: "#8b5cf6",
+      steps: [
+        { title: "Financial Instruments", desc: "Derivatives, Options, and Greeks. Resources: Investopedia, Hull's Options & Futures." },
+        { title: "Stochastic Calculus", desc: "Black-Scholes and Brownian Motion. Resources: MIT 18.S096, QuantStart." },
+        { title: "C++ for Finance", desc: "High-performance execution code. Resources: QuantNet, LearnCpp.com." },
+        { title: "Algorithmic Trading", desc: "Backtesting and Alpha generation. Resources: QuantConnect, Quantopian Archive." },
+        { title: "Risk Management", desc: "Value at Risk (VaR) and Stress Testing. Resources: PRMIA, FRM Handbook." }
+      ]
+    },
+    {
+      id: "t6",
+      title: "Product Manager (Tech)",
+      desc: "Bridge the gap between business and engineering.",
+      color: "#ec4899",
+      steps: [
+        { title: "Product Discovery", desc: "Customer interviews and pain points. Resources: Product Talk (Teresa Torres)." },
+        { title: "Technical Literacy", desc: "Understanding APIs and Databases. Resources: Tech for Non-Techies (Podcast)." },
+        { title: "Agile & Scrum", desc: "Jira and Sprint planning. Resources: Atlassian Agile Coach, Scrum.org." },
+        { title: "Metrics & Analytics", desc: "AARRR metrics and SQL. Resources: Reforge, Amplitude Academy." },
+        { title: "Product Strategy", desc: "Roadmapping and Vision. Resources: Inspired (Marty Cagan), Lenny's Newsletter." }
+      ]
+    },
+    {
+      id: "t7",
+      title: "Data Scientist (Bioinformatics)",
+      desc: "Analyze genomic data with computational tools.",
+      color: "#06b6d4",
+      steps: [
+        { title: "Biology Foundations", desc: "DNA, Proteins, and Gene Expression. Resources: Khan Academy Biology." },
+        { title: "R for Bioinformatics", desc: "Bioconductor and Data Visualization. Resources: EdX HarvardX Biomedical Data Science." },
+        { title: "Sequence Analysis", desc: "BLAST and Sequence Alignment. Resources: NCBI Tools, Rosalind.info." },
+        { title: "Structural Biology", desc: "Protein folding and AlphaFold. Resources: DeepMind Blog, RCSB PDB." },
+        { title: "Next-Gen Sequencing", desc: "NGS workflows and pipelines. Resources: Illumina Training, Galaxy Project." }
+      ]
+    },
+    {
+      id: "t8",
+      title: "Robotics & Embedded Systems",
+      desc: "Build autonomous machines and hardware.",
+      color: "#6366f1",
+      steps: [
+        { title: "Electronics Basics", desc: "Circuits, Microcontrollers, and PCBs. Resources: Adafruit, SparkFun, All About Circuits." },
+        { title: "Embedded C/C++", desc: "Writing code for AVR and ARM. Resources: Quantum Leaps (Modern Embedded), RTOS Docs." },
+        { title: "Control Systems", desc: "PID Control and Signal Processing. Resources: Brian Douglas (YouTube), Control Guru." },
+        { title: "ROS (Robot Operating System)", desc: "Building robot nodes and packages. Resources: ROS.org Wiki, ConstructSim." },
+        { title: "Computer Vision for Robots", desc: "OpenCV and SLAM. Resources: PyImageSearch, SLAM Lectures." }
+      ]
+    },
+    {
+      id: "t9",
+      title: "DevOps & SRE",
+      desc: "Automate software delivery and reliability.",
+      color: "#14b8a6",
+      steps: [
+        { title: "CI/CD Pipelines", desc: "GitHub Actions and Jenkins. Resources: GitHub Learning Lab, DevOps Directive." },
+        { title: "Containerization", desc: "Docker and Microservices. Resources: Docker Captains, KodeKloud." },
+        { title: "Kubernetes Orchestration", desc: "Scaling and managing clusters. Resources: K8s Docs, CKA Prep." },
+        { title: "Monitoring & Logging", desc: "Prometheus and ELK Stack. Resources: Grafana Labs, Elastic Training." },
+        { title: "Site Reliability", desc: "SLIs, SLOs, and Error Budgets. Resources: Google SRE Book." }
+      ]
+    },
+    {
+      id: "t10",
+      title: "Game Developer (Unreal)",
+      desc: "Create immersive 3D games with C++.",
+      color: "#f97316",
+      steps: [
+        { title: "Unreal Engine Basics", desc: "Blueprints and Editor workflow. Resources: Unreal Engine Learning Portal." },
+        { title: "C++ for Unreal", desc: "Gameplay programming and UObjects. Resources: Tom Looman's Blog, Udemy Course." },
+        { title: "3D Math & Physics", desc: "Vectors, Quaternions, and Collision. Resources: GDC Vault, Math for Games." },
+        { title: "Shaders & Visual Effects", desc: "Niagara and Material Editor. Resources: Ben Cloward (YouTube)." },
+        { title: "Game Optimization", desc: "Profiling and Level Streaming. Resources: Unreal Engine Performance Guide." }
+      ]
+    },
+    {
+      id: "t11",
+      title: "Mobile App Developer (iOS)",
+      desc: "Build beautiful apps with Swift and SwiftUI.",
+      color: "#0ea5e9",
+      steps: [
+        { title: "Swift Programming", desc: "Language syntax and protocols. Resources: Hacking with Swift, Swift.org." },
+        { title: "SwiftUI Layouts", desc: "Declarative UI design. Resources: Apple Developer Tutorials, DesignCode.io." },
+        { title: "Networking & Persistence", desc: "URLSession and CoreData. Resources: Ray Wenderlich (Kodeco)." },
+        { title: "iOS Architecture", desc: "MVVM and Combine. Resources: Point-Free, Donny Wals." },
+        { title: "App Store Publishing", desc: "App Store Connect and Beta Testing. Resources: Apple Developer Docs." }
+      ]
+    },
+    {
+      id: "t12",
+      title: "UI/UX Design Lead",
+      desc: "Create user-centered digital experiences.",
+      color: "#a855f7",
+      steps: [
+        { title: "Design Principles", desc: "Typography, Color Theory, and Grid. Resources: Nielsen Norman Group, Laws of UX." },
+        { title: "Design Tools (Figma)", desc: "Auto Layout and Prototyping. Resources: Figma YouTube, UI Prep." },
+        { title: "User Research", desc: "Usability testing and Personas. Resources: Interaction Design Foundation." },
+        { title: "Design Systems", desc: "Components and Tokens. Resources: Material Design, Human Interface Guidelines." },
+        { title: "Portfolio Building", desc: "Case studies and Storytelling. Resources: Behance, Dribbble, Case Study Club." }
+      ]
+    },
+    {
+      id: "t13",
+      title: "AR/VR Developer",
+      desc: "Design the future of spatial computing.",
+      color: "#d946ef",
+      steps: [
+        { title: "Unity Engine Fundamentals", desc: "C# and 3D environment setup. Resources: Unity Learn, Brackeys." },
+        { title: "Spatial Interaction", desc: "Hand tracking and Raycasting. Resources: Meta Presence Platform Docs." },
+        { title: "AR Foundation", desc: "Building AR for iOS/Android. Resources: ARCore & ARKit Documentation." },
+        { title: "Immersive Audio", desc: "Spatial sound design. Resources: Oculus Audio SDK, FMOD." },
+        { title: "Performance in XR", desc: "Frame rates and Latency. Resources: Valve VR Performance Guide." }
+      ]
+    },
+    {
+      id: "t14",
+      title: "Autonomous Systems",
+      desc: "Develop software for self-driving cars.",
+      color: "#64748b",
+      steps: [
+        { title: "Sensor Fusion", desc: "Lidar, Radar, and Camera data. Resources: Udacity Self-Driving Car Nanodegree." },
+        { title: "Localization & Mapping", desc: "SLAM and GPS Integration. Resources: Cyrill Stachniss (YouTube)." },
+        { title: "Path Planning", desc: "A* and Hybrid A* algorithms. Resources: Coursera Robotics Specialization." },
+        { title: "Computer Vision (CV)", desc: "Object detection and Segmentation. Resources: OpenCV, YOLO Docs." },
+        { title: "Safety & Simulation", desc: "CARLA Simulator and Apollo. Resources: CARLA.org, Baidu Apollo." }
+      ]
+    },
+    {
+      id: "t15",
+      title: "FinTech Engineer",
+      desc: "Modernize banking and payment systems.",
+      color: "#4ade80",
+      steps: [
+        { title: "Payment Systems", desc: "ACH, SWIFT, and Card Processing. Resources: Stripe Docs, Finix Blog." },
+        { title: "Banking as a Service", desc: "Ledgers and Wallets. Resources: Unit.co Docs, Moov.io." },
+        { title: "Security & Compliance", desc: "PCI-DSS and KYC/AML. Resources: Plaid Academy, FinCEN." },
+        { title: "Low-Latency Backend", desc: "High-throughput transaction systems. Resources: High Scalability Blog." },
+        { title: "Embedded Finance", desc: "Integrating lending and cards. Resources: Treasury Prime, Lithic Docs." }
+      ]
+    }
+  ];
+
+  const handleStartTemplate = async (template: any) => {
+    try {
+      const res = await fetch("/api/roadmaps", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: template.title,
+          description: template.desc,
+          color: template.color,
+          steps: template.steps
+        })
+      });
+      if (res.ok) {
+        fetchRoadmaps();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const renderDescription = (desc: string) => {
+    if (!desc) return null;
+    const parts = desc.split("Resources:");
+    if (parts.length === 1) return <p style={{ margin: 0, color: "var(--text-muted)", fontSize: "0.95rem" }}>{desc}</p>;
+    
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+        <p style={{ margin: 0, color: "var(--text-muted)", fontSize: "0.95rem" }}>{parts[0].trim()}</p>
+        <div style={{ background: "rgba(6, 182, 212, 0.05)", padding: "0.75rem", borderRadius: "12px", border: "1px solid rgba(6, 182, 212, 0.1)" }}>
+          <p style={{ fontSize: "0.75rem", fontWeight: "700", color: "#06b6d4", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Resources:</p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+            {parts[1].split(",").map((r, i) => (
+              <span key={i} style={{ fontSize: "0.7rem", background: "white", color: "#06b6d4", padding: "0.2rem 0.6rem", borderRadius: "6px", border: "1px solid rgba(6, 182, 212, 0.1)", fontWeight: "600" }}>{r.trim()}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <motion.div 
@@ -233,6 +483,38 @@ export default function RoadmapsPage() {
               </div>
             )}
           </div>
+
+          <div style={{ marginTop: "2rem" }}>
+            <h3 style={{ fontSize: "1.5rem", fontWeight: "800", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <Sparkles size={24} color="#f59e0b" /> Recommended Templates
+            </h3>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.5rem" }}>
+              {ELITE_TEMPLATES.map((template) => (
+                <div key={template.id} style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "24px", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ width: "40px", height: "40px", borderRadius: "12px", background: `${template.color}15`, color: template.color, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Route size={20} />
+                    </div>
+                    <button 
+                      onClick={() => handleStartTemplate(template)}
+                      style={{ padding: "0.5rem 1rem", borderRadius: "100px", border: "none", background: template.color, color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer" }}
+                    >
+                      Start This Path
+                    </button>
+                  </div>
+                  <div>
+                    <h4 style={{ margin: "0 0 0.25rem 0", fontSize: "1.1rem" }}>{template.title}</h4>
+                    <p style={{ margin: 0, color: "var(--text-muted)", fontSize: "0.85rem" }}>{template.desc}</p>
+                  </div>
+                  <div style={{ display: "flex", gap: "0.5rem", color: "var(--text-muted)", fontSize: "0.75rem", fontWeight: "600" }}>
+                    <span>{template.steps.length} Expert Steps</span>
+                    <span>•</span>
+                    <span>Includes Resources</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </>
       )}
 
@@ -313,7 +595,7 @@ export default function RoadmapsPage() {
                         </button>
                       </div>
                     </div>
-                    <p style={{ margin: 0, color: "var(--text-muted)", fontSize: "0.95rem" }}>{step.desc}</p>
+                    {renderDescription(step.desc)}
                     
                     {step.status === 'in-progress' && (
                       <div style={{ marginTop: "1rem", display: "flex", gap: "0.5rem" }}>

@@ -191,7 +191,7 @@ export default function Home() {
         </section>
 
         {/* Featured Tracks (Interactive Slider) */}
-        <section className={styles.sectionPadding} style={{ background: "rgba(99,102,241,0.02)" }}>
+        <section className={styles.sectionPadding} style={{ background: "var(--section-bg-1)" }}>
           <div className="container" style={{ position: "relative" }}>
             <motion.h2 
               initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeIn}
@@ -250,7 +250,7 @@ export default function Home() {
                   </div>
                   <p style={{ color: "var(--text-muted)", marginBottom: "1.5rem", minHeight: "3.5rem", lineHeight: "1.5", fontSize: "0.95rem" }}>{track.desc}</p>
                   
-                  <div className={styles.trackStats} style={{ background: "rgba(99,102,241,0.05)", padding: "1rem 1.25rem", borderRadius: "12px", border: "1px solid rgba(99,102,241,0.1)", marginBottom: "1.5rem", marginTop: "auto" }}>
+                  <div className={styles.trackStats} style={{ background: "var(--card-bg)", padding: "1rem 1.25rem", borderRadius: "12px", border: "1px solid var(--card-border)", marginBottom: "1.5rem", marginTop: "auto" }}>
                     <div className={styles.trackStatItem}>
                       <span className={styles.trackStatValue}>{track.s}</span>
                       <span className={styles.trackStatLabel}>Scholarships</span>
@@ -302,7 +302,7 @@ export default function Home() {
                 { title: "Global Community", desc: "Connect with expert mentors and ambitious students from top universities worldwide.", icon: <Globe size={40} color="#3b82f6" /> }
               ].map((feature, i) => (
                 <motion.div key={i} variants={fadeIn} className="glass-card" style={{ padding: "2.5rem", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: "1.5rem" }}>
-                  <div style={{ background: "rgba(255,255,255,0.03)", padding: "1.5rem", borderRadius: "50%", border: "1px solid rgba(255,255,255,0.05)", boxShadow: "0 8px 32px rgba(0,0,0,0.05)" }}>
+                  <div style={{ background: "var(--card-bg)", padding: "1.5rem", borderRadius: "50%", border: "1px solid var(--card-border)", boxShadow: "0 8px 32px rgba(0,0,0,var(--shadow-opacity))" }}>
                     {feature.icon}
                   </div>
                   <h3 style={{ fontSize: "1.5rem", fontWeight: "700" }}>{feature.title}</h3>
@@ -360,7 +360,7 @@ export default function Home() {
         </section>
 
         {/* Top Mentors */}
-        <section className={styles.sectionPadding} style={{ background: "rgba(168, 85, 247, 0.02)" }}>
+        <section className={styles.sectionPadding} style={{ background: "var(--section-bg-2)" }}>
           <div className="container">
             <motion.h2 
               initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeIn}
@@ -512,7 +512,7 @@ export default function Home() {
         </section>
 
         {/* FAQ */}
-        <section className={styles.sectionPadding} style={{ background: "rgba(99,102,241,0.02)" }}>
+        <section className={styles.sectionPadding} style={{ background: "var(--section-bg-1)" }}>
           <div className="container" style={{ maxWidth: "800px" }}>
             <motion.h2 
               initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeIn}

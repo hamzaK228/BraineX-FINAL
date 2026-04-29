@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { SavedProvider } from "@/context/SavedContext";
+import { AuthProvider } from "@/components/AuthProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,12 +23,14 @@ export default function RootLayout({
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
       </head>
       <body className={inter.className}>
-        <ThemeProvider>
-          <SavedProvider>
-            <div className="bg-mesh"></div>
-            {children}
-          </SavedProvider>
-        </ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider>
+            <SavedProvider>
+              <div className="bg-mesh"></div>
+              {children}
+            </SavedProvider>
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );

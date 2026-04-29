@@ -197,6 +197,7 @@ model Roadmap {
   userId      String
   title       String
   description String?
+  color       String?       @default("#8b5cf6")
   createdAt   DateTime      @default(now())
   steps       RoadmapStep[]
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)

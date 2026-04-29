@@ -7,8 +7,8 @@
 .searchBox {
   display: flex;
   align-items: center;
-  background: rgba(30, 41, 59, 0.7);
-  border: 1px solid rgba(148, 163, 184, 0.1);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 50px;
   padding: 0.5rem 0.5rem 0.5rem 1.5rem;
   margin: 0 auto 3rem;
@@ -21,7 +21,7 @@
   flex: 1;
   background: transparent;
   border: none;
-  color: #f1f5f9;
+  color: var(--text-color);
   font-size: 1rem;
   padding: 0.5rem;
   outline: none;
@@ -52,8 +52,8 @@
 }
 
 .statCard {
-  background: rgba(30, 41, 59, 0.4);
-  border: 1px solid rgba(148, 163, 184, 0.1);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 24px;
   padding: 2.5rem 1.5rem;
   text-align: center;
@@ -66,7 +66,7 @@
 }
 
 .statCard:hover {
-  background: rgba(30, 41, 59, 0.6);
+  background: var(--card-bg);
   border-color: rgba(139, 92, 246, 0.3);
   transform: translateY(-5px);
 }
@@ -83,7 +83,7 @@
 .statLabel {
   font-size: 0.85rem;
   font-weight: 700;
-  color: #64748b;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
@@ -101,11 +101,11 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(148, 163, 184, 0.1);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 50px;
   padding: 0.6rem 1.25rem;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
@@ -113,8 +113,8 @@
 }
 
 .tabBtn:hover {
-  background: rgba(30, 41, 59, 0.8);
-  color: #f1f5f9;
+  background: var(--card-bg);
+  color: var(--text-color);
 }
 
 .tabBtn.active {
@@ -126,7 +126,7 @@
 
 .tabCount {
   background: rgba(255, 255, 255, 0.2);
-  color: white;
+  color: var(--text-color);
   font-size: 0.7rem;
   padding: 0.1rem 0.4rem;
   border-radius: 10px;
@@ -141,8 +141,8 @@
 }
 
 .card {
-  background: rgba(30, 41, 59, 0.4);
-  border: 1px solid rgba(148, 163, 184, 0.1);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 24px;
   padding: 2rem;
   display: flex;
@@ -154,7 +154,7 @@
 .card:hover {
   transform: translateY(-8px);
   border-color: rgba(99, 102, 241, 0.3);
-  background: rgba(30, 41, 59, 0.6);
+  background: var(--card-bg);
   box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.5);
 }
 
@@ -167,8 +167,8 @@
 .iconWrapper {
   width: 54px;
   height: 54px;
-  background: rgba(30, 41, 59, 0.8);
-  border: 1px solid rgba(148, 163, 184, 0.1);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -180,7 +180,7 @@
 .title {
   font-size: 1.3rem;
   font-weight: 800;
-  color: #f1f5f9;
+  color: var(--text-color);
   margin-bottom: 0.25rem;
 }
 
@@ -194,7 +194,7 @@
 
 .description {
   font-size: 0.95rem;
-  color: #94a3b8;
+  color: var(--text-muted);
   line-height: 1.6;
   margin-bottom: 1.5rem;
   display: -webkit-box;
@@ -208,14 +208,14 @@
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-bottom: 1.5rem;
-  background: rgba(15, 23, 42, 0.3);
+  background: var(--bg-color);
   padding: 0.75rem 1rem;
   border-radius: 12px;
 }
 
 .uniPill {
   font-size: 0.8rem;
-  color: #cbd5e1;
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -234,7 +234,7 @@
   gap: 0.5rem;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #f1f5f9;
+  color: var(--text-color);
 }
 
 .footer {
@@ -243,14 +243,14 @@
   justify-content: space-between;
   margin-top: auto;
   padding-top: 1.5rem;
-  border-top: 1px solid rgba(148, 163, 184, 0.1);
+  border-top: 1px solid var(--card-border);
 }
 
 .salaryLabel {
   display: block;
   font-size: 0.7rem;
   font-weight: 700;
-  color: #64748b;
+  color: var(--text-muted);
   text-transform: uppercase;
   margin-bottom: 0.25rem;
 }

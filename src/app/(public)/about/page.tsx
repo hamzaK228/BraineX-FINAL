@@ -213,7 +213,7 @@ export default function AboutPage() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               className={`glass-card text-center`}
-              style={{ padding: "4rem 2rem", background: "linear-gradient(135deg, rgba(99,102,241,0.1), rgba(168,85,247,0.1))", border: "1px solid rgba(168,85,247,0.3)" }}
+              style={{ padding: "4rem 2rem", background: "var(--section-bg-2)", border: "1px solid var(--card-border)" }}
             >
               <h2 style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>Ready to Start Your Journey?</h2>
               <p style={{ fontSize: "1.2rem", color: "var(--text-muted)", maxWidth: "700px", margin: "0 auto 2rem" }}>

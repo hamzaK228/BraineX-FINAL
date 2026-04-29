@@ -15,49 +15,36 @@ export default function DashboardPage() {
   ]);
   const [goals, setGoals] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
+  const [weekSchedule, setWeekSchedule] = useState<any[]>([]);
+  const [upcomingDeadlines, setUpcomingDeadlines] = useState<any[]>([]);
+  const [savedUniversities, setSavedUniversities] = useState<any[]>([]);
+  const [savedPrograms, setSavedPrograms] = useState<any[]>([]);
+  const [resources, setResources] = useState<any[]>([]);
+  const [roadmaps, setRoadmaps] = useState<any[]>([]);
   const [isReady, setIsReady] = useState(false);
 
   const fetchDashboard = useCallback(async () => {
     try {
-      // Fetch user
-      const userRes = await fetch("/api/user/me");
-      if (userRes.ok) { const u = await userRes.json(); setUserName(u.name?.split(" ")[0] || "there"); }
-    } catch { /* fallback */ }
-    try {
-      // Fetch stats
-      const statsRes = await fetch("/api/dashboard/stats");
-      if (statsRes.ok) {
-        const s = await statsRes.json();
-        setStats([
-          { label: "Active Goals", value: String(s.goals ?? 0), icon: "🎯" },
-          { label: "Tasks In Progress", value: String(s.tasks?.total ?? 0), icon: "📚" },
-          { label: "Scholarships Saved", value: String(s.scholarships ?? 0), icon: "🏆" },
-          { label: "Deadlines This Month", value: String(s.deadlines ?? 0), icon: "🔥" }
-        ]);
-      }
-    } catch { /* fallback */ }
-    try {
-      // Fetch goals
-      const goalsRes = await fetch("/api/goals");
-      if (goalsRes.ok) {
-        const data = await goalsRes.json();
-        if (Array.isArray(data) && data.length > 0) {
-          setGoals(data.slice(0, 4).map((g: any) => ({ id: g.id, text: g.title, completed: g.status === "completed", category: g.category || "General", progress: g.progress ?? 0 })));
+      const res = await fetch("/api/dashboard/overview");
+      if (res.ok) {
+        const data = await res.json();
+        setUserName(data.userName || "there");
+        if (data.stats) {
+          setStats([
+            { label: "Active Goals", value: String(data.stats.goals ?? 0), icon: "🎯" },
+            { label: "Tasks In Progress", value: String(data.stats.tasks?.total ?? 0), icon: "📚" },
+            { label: "Scholarships Saved", value: String(data.stats.scholarships ?? 0), icon: "🏆" },
+            { label: "Deadlines This Month", value: String(data.stats.deadlines ?? 0), icon: "🔥" }
+          ]);
         }
-      }
-    } catch { /* fallback */ }
-    try {
-      // Fetch tasks
-      const tasksRes = await fetch("/api/tasks");
-      if (tasksRes.ok) {
-        const data = await tasksRes.json();
-        if (Array.isArray(data)) {
-          setTasks(data.slice(0, 5).map((t: any) => ({
-            id: t.id,
-            text: t.title,
-            done: t.status === "completed"
-          })));
-        }
+        if (data.goals) setGoals(data.goals);
+        if (data.tasks) setTasks(data.tasks);
+        if (data.weekSchedule) setWeekSchedule(data.weekSchedule);
+        if (data.upcomingDeadlines) setUpcomingDeadlines(data.upcomingDeadlines);
+        if (data.savedUniversities) setSavedUniversities(data.savedUniversities);
+        if (data.savedPrograms) setSavedPrograms(data.savedPrograms);
+        if (data.resources) setResources(data.resources);
+        if (data.roadmaps) setRoadmaps(data.roadmaps);
       }
     } catch { /* fallback */ }
     setIsReady(true);
@@ -82,7 +69,7 @@ export default function DashboardPage() {
       border: "1px solid var(--card-border)",
       borderRadius: "24px",
       padding: "30px",
-      boxShadow: "0 4px 20px rgba(0,0,0,0.03)",
+      boxShadow: "0 4px 20px rgba(0,0,0,var(--shadow-opacity))",
       ...style
     }}>
       {children}
@@ -101,7 +88,7 @@ export default function DashboardPage() {
       {/* Welcome Banner */}
       <motion.div variants={itemVariants}>
         <ComfortCard style={{ 
-          background: "linear-gradient(to right, rgba(99,102,241,0.05), rgba(168,85,247,0.05))",
+          background: "var(--section-bg-1)",
           display: "flex", 
           alignItems: "center", 
           gap: "2rem",
@@ -204,8 +191,24 @@ export default function DashboardPage() {
               <h3 style={{ margin: 0, fontSize: "1.4rem", fontWeight: "700" }}>Upcoming Deadlines</h3>
             </div>
             <div style={{ textAlign: "center", padding: "2rem", color: "var(--text-muted)" }}>
-              <Clock size={32} color="var(--card-border)" style={{ marginBottom: "1rem" }} />
-              <p>No upcoming deadlines. Save a scholarship or program to track it here!</p>
+              {upcomingDeadlines.length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "1rem", textAlign: "left" }}>
+                  {upcomingDeadlines.slice(0, 3).map((d: any) => (
+                    <div key={d.id} style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                      <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#f43f5e" }}></div>
+                      <div>
+                        <div style={{ fontSize: "0.95rem", fontWeight: "600" }}>{new Date(d.date).toLocaleDateString()} - {d.title}</div>
+                        <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>{d.course || "General"}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <Clock size={32} color="var(--card-border)" style={{ marginBottom: "1rem" }} />
+                  <p>No upcoming deadlines. Save a scholarship or program to track it here!</p>
+                </>
+              )}
             </div>
           </ComfortCard>
 
@@ -237,9 +240,25 @@ export default function DashboardPage() {
               <Link href="/universities" style={{ color: "#6366f1", fontSize: "0.95rem", fontWeight: "600", textDecoration: "none" }}>Browse All</Link>
             </div>
             <div style={{ textAlign: "center", padding: "2rem", color: "var(--text-muted)" }}>
-              <Building size={32} color="var(--card-border)" style={{ marginBottom: "1rem" }} />
-              <p>You haven't saved any universities yet.</p>
-              <Link href="/universities" style={{ color: "#6366f1", marginTop: "1rem", display: "inline-block", fontWeight: "600" }}>Explore Universities</Link>
+              {savedUniversities.length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "1rem", textAlign: "left" }}>
+                  {savedUniversities.map((u: any) => (
+                    <div key={u.id} style={{ display: "flex", alignItems: "center", gap: "1rem", background: "var(--bg-color)", padding: "1rem", borderRadius: "12px", border: "1px solid var(--card-border)" }}>
+                      <Building size={20} color="#6366f1" />
+                      <div>
+                        <h4 style={{ margin: 0, fontSize: "1rem" }}>{u.name}</h4>
+                        <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-muted)" }}>{u.location}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <Building size={32} color="var(--card-border)" style={{ marginBottom: "1rem" }} />
+                  <p>You haven't saved any universities yet.</p>
+                  <Link href="/universities" style={{ color: "#6366f1", marginTop: "1rem", display: "inline-block", fontWeight: "600" }}>Explore Universities</Link>
+                </>
+              )}
             </div>
           </ComfortCard>
         </motion.div>
@@ -255,9 +274,25 @@ export default function DashboardPage() {
               <Link href="/programs" style={{ color: "#6366f1", fontSize: "0.95rem", fontWeight: "600", textDecoration: "none" }}>Browse All</Link>
             </div>
             <div style={{ textAlign: "center", padding: "2rem", color: "var(--text-muted)" }}>
-              <GraduationCap size={32} color="var(--card-border)" style={{ marginBottom: "1rem" }} />
-              <p>You haven't saved any programs yet.</p>
-              <Link href="/programs" style={{ color: "#6366f1", marginTop: "1rem", display: "inline-block", fontWeight: "600" }}>Explore Programs</Link>
+              {savedPrograms.length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "1rem", textAlign: "left" }}>
+                  {savedPrograms.map((p: any) => (
+                    <div key={p.id} style={{ display: "flex", alignItems: "center", gap: "1rem", background: "var(--bg-color)", padding: "1rem", borderRadius: "12px", border: "1px solid var(--card-border)" }}>
+                      <GraduationCap size={20} color="#a855f7" />
+                      <div>
+                        <h4 style={{ margin: 0, fontSize: "1rem" }}>{p.name}</h4>
+                        <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-muted)" }}>{p.university}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <GraduationCap size={32} color="var(--card-border)" style={{ marginBottom: "1rem" }} />
+                  <p>You haven't saved any programs yet.</p>
+                  <Link href="/programs" style={{ color: "#6366f1", marginTop: "1rem", display: "inline-block", fontWeight: "600" }}>Explore Programs</Link>
+                </>
+              )}
             </div>
           </ComfortCard>
         </motion.div>
@@ -279,13 +314,7 @@ export default function DashboardPage() {
           </div>
           
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem" }}>
-            {[].length > 0 ? [
-              { day: "Mon", date: "12", events: [{ title: "Physics Lab", color: "#3b82f6" }] },
-              { day: "Tue", date: "13", events: [{ title: "Mentor Call", color: "#a855f7" }, { title: "Draft Essay", color: "#10b981" }] },
-              { day: "Wed", date: "14", isToday: true, events: [{ title: "Submit Application", color: "#f43f5e" }] },
-              { day: "Thu", date: "15", events: [] },
-              { day: "Fri", date: "16", events: [{ title: "Study Group", color: "#f59e0b" }] },
-            ].map((d: any, i: number) => (
+            {weekSchedule.length > 0 ? weekSchedule.filter(d => d.day !== 'Sat' && d.day !== 'Sun').map((d: any, i: number) => (
               <div key={i} style={{ 
                 background: d.isToday ? "rgba(99,102,241,0.05)" : "var(--bg-color)", 
                 border: d.isToday ? "2px solid #6366f1" : "1px solid var(--card-border)", 
@@ -302,11 +331,18 @@ export default function DashboardPage() {
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", flex: 1 }}>
                   {d.events.length === 0 ? (
                     <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", textAlign: "center", marginTop: "auto", marginBottom: "auto" }}>Free Day</div>
-                  ) : d.events.map((e: any, j: number) => (
-                    <div key={j} style={{ background: `rgba(${e.color === '#3b82f6' ? '59,130,246' : e.color === '#a855f7' ? '168,85,247' : e.color === '#10b981' ? '16,185,129' : e.color === '#f43f5e' ? '244,63,94' : '245,158,11'}, 0.1)`, borderLeft: `3px solid ${e.color}`, padding: "0.5rem", borderRadius: "0 6px 6px 0", fontSize: "0.8rem", fontWeight: "600", color: "var(--text-color)" }}>
-                      {e.title}
-                    </div>
-                  ))}
+                  ) : d.events.map((e: any, j: number) => {
+                    // map types to colors
+                    let color = '#3b82f6'; // event (blue)
+                    if (e.type === 'deadline') color = '#f43f5e'; // red
+                    if (e.type === 'meeting') color = '#a855f7'; // purple
+                    if (e.type === 'task') color = '#10b981'; // green
+                    return (
+                      <div key={j} style={{ background: `rgba(${color === '#3b82f6' ? '59,130,246' : color === '#a855f7' ? '168,85,247' : color === '#10b981' ? '16,185,129' : color === '#f43f5e' ? '244,63,94' : '245,158,11'}, 0.1)`, borderLeft: `3px solid ${color}`, padding: "0.5rem", borderRadius: "0 6px 6px 0", fontSize: "0.8rem", fontWeight: "600", color: "var(--text-color)" }}>
+                        {e.title}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )) : (
