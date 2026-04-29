@@ -15,13 +15,7 @@ export default function ScholarshipsPage() {
     visible: { opacity: 1, y: 0 }
   };
 
-  const FALLBACK = [
-    { id: "1", title: "Global Excellence Scholarship", provider: "University of Melbourne", amount: "$10,000 / year", deadline: "Oct 31, 2024", status: "applied", link: "https://example.com/scholarship1" },
-    { id: "2", title: "STEM Women in Tech Grant", provider: "Tech Foundation", amount: "$5,000 one-time", deadline: "Nov 15, 2024", status: "saved", link: "https://example.com/scholarship2" },
-    { id: "3", title: "International Merit Award", provider: "NYU", amount: "Full Tuition", deadline: "Jan 1, 2025", status: "saved", link: "https://example.com/scholarship3" }
-  ];
-
-  const [scholarships, setScholarships] = useState<any[]>(FALLBACK);
+  const [scholarships, setScholarships] = useState<any[]>([]);
   const [filter, setFilter] = useState("All");
 
   const fetchScholarships = useCallback(async () => {
@@ -29,7 +23,7 @@ export default function ScholarshipsPage() {
       const res = await fetch("/api/scholarships");
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setScholarships(data.map((s: any) => ({ id: s.id, title: s.name, provider: s.provider || "", amount: s.amount || "Variable", deadline: s.deadline ? new Date(s.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "TBA", status: s.status || "saved", link: s.link || "" })));
         }
       }
@@ -165,13 +159,23 @@ export default function ScholarshipsPage() {
                     width: "48px", 
                     height: "48px", 
                     borderRadius: "16px", 
-                    background: `${getStatusColor(s.status)}15`, 
-                    color: getStatusColor(s.status),
+                    background: "white", 
+                    border: "1px solid var(--card-border)",
                     display: "flex", 
                     alignItems: "center", 
-                    justifyContent: "center" 
+                    justifyContent: "center",
+                    overflow: "hidden",
+                    padding: "4px"
                   }}>
-                    <Award size={24} />
+                    <img 
+                      src={`https://www.google.com/s2/favicons?domain=${s.provider.toLowerCase().replace(/ /g, "")}.com&sz=128`} 
+                      alt={s.provider} 
+                      style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23f59e0b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 15l-2 5L9 9l11 4-5 2zm0 0l4 4'/%3E%3C/svg%3E";
+                      }}
+                    />
                   </div>
                   <div>
                     <h3 style={{ margin: "0 0 0.25rem 0", fontSize: "1.15rem", lineHeight: "1.3" }}>{s.title}</h3>

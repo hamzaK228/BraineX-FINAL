@@ -106,7 +106,7 @@ export function InfoModal({
               <div className={styles.tipsBox}>
                 <div className={styles.tipsHeader}>
                   <Zap size={18} color="#f59e0b" fill="#f59e0b" />
-                  <h3>Pro Tips</h3>
+                  <h3>PRO TIPS</h3>
                 </div>
                 <ul className={styles.tipsList}>
                   {tips.map((tip, i) => (
@@ -119,16 +119,13 @@ export function InfoModal({
                 <div className={styles.featuresBox}>
                   <div className={styles.featuresHeader}>
                     <Star size={18} color="#6366f1" fill="#6366f1" />
-                    <h3>Special Features</h3>
+                    <h3>SPECIAL FEATURES</h3>
                   </div>
-                  <div className={styles.featuresGrid}>
+                  <ul className={styles.featuresList}>
                     {specialFeatures.map((feature, i) => (
-                      <div key={i} className={styles.featureItem}>
-                        <div className={styles.featureBullet} />
-                        <span>{feature}</span>
-                      </div>
+                      <li key={i}>{feature}</li>
                     ))}
-                  </div>
+                  </ul>
                 </div>
               )}
             </div>

@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Mail, Lock, ArrowRight, User, ArrowLeft, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Mail, Lock, ArrowRight, User, ArrowLeft, Loader2, AlertCircle, CheckCircle2, AtSign, KeyRound } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
@@ -10,6 +10,8 @@ export default function SignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [nickname, setNickname] = useState("");
+  const [recoveryKey, setRecoveryKey] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -35,7 +37,7 @@ export default function SignupPage() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, nickname: nickname || undefined, recoveryKey: recoveryKey || undefined }),
       });
 
       const data = await res.json();
@@ -155,6 +157,41 @@ export default function SignupPage() {
                   onFocus={(e) => e.currentTarget.style.borderColor = "#3b82f6"}
                   onBlur={(e) => e.currentTarget.style.borderColor = "var(--card-border)"}
                 />
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: "1rem" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", flex: 1 }}>
+                <label style={{ fontSize: "0.85rem", fontWeight: "600", color: "var(--text-color)" }}>Nickname <span style={{ color: "var(--text-muted)", fontWeight: "400", fontSize: "0.75rem" }}>(for recovery)</span></label>
+                <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                  <AtSign size={18} color="var(--text-muted)" style={{ position: "absolute", left: "1rem" }} />
+                  <input 
+                    type="text" 
+                    value={nickname}
+                    onChange={(e) => setNickname(e.target.value)}
+                    placeholder="unique_nick"
+                    disabled={loading || success}
+                    style={{ width: "100%", padding: "0.875rem 1rem 0.875rem 2.75rem", borderRadius: "12px", border: "1px solid var(--card-border)", background: "var(--bg-color)", color: "var(--text-color)", fontSize: "0.95rem", outline: "none", transition: "border-color 0.2s", opacity: loading ? 0.6 : 1 }}
+                    onFocus={(e) => e.currentTarget.style.borderColor = "#3b82f6"}
+                    onBlur={(e) => e.currentTarget.style.borderColor = "var(--card-border)"}
+                  />
+                </div>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", flex: 1 }}>
+                <label style={{ fontSize: "0.85rem", fontWeight: "600", color: "var(--text-color)" }}>Recovery Key <span style={{ color: "var(--text-muted)", fontWeight: "400", fontSize: "0.75rem" }}>(secret word)</span></label>
+                <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                  <KeyRound size={18} color="var(--text-muted)" style={{ position: "absolute", left: "1rem" }} />
+                  <input 
+                    type="password" 
+                    value={recoveryKey}
+                    onChange={(e) => setRecoveryKey(e.target.value)}
+                    placeholder="secret keyword"
+                    disabled={loading || success}
+                    style={{ width: "100%", padding: "0.875rem 1rem 0.875rem 2.75rem", borderRadius: "12px", border: "1px solid var(--card-border)", background: "var(--bg-color)", color: "var(--text-color)", fontSize: "0.95rem", outline: "none", transition: "border-color 0.2s", opacity: loading ? 0.6 : 1 }}
+                    onFocus={(e) => e.currentTarget.style.borderColor = "#3b82f6"}
+                    onBlur={(e) => e.currentTarget.style.borderColor = "var(--card-border)"}
+                  />
+                </div>
               </div>
             </div>
 

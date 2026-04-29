@@ -43,6 +43,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user || !user.passwordHash) return null;
 
+        // Block login for blocked users
+        if ((user as any).status === "BLOCKED") return null;
+
         const passwordMatch = await bcrypt.compare(password, user.passwordHash);
         if (!passwordMatch) return null;
 
@@ -62,9 +65,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // Fetch role from DB on initial sign-in
         const dbUser = await prisma.user.findUnique({
           where: { id: user.id as string },
-          select: { role: true },
+          select: { role: true, status: true },
         });
         token.role = dbUser?.role || "STUDENT";
+        token.status = dbUser?.status || "ACTIVE";
       }
       return token;
     },

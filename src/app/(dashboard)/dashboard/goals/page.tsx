@@ -11,15 +11,10 @@ interface Goal {
   completed?: boolean;
 }
 
-const FALLBACK_GOALS: Goal[] = [
-  { id: "1", title: "Apply for 5 CS Scholarships", progress: 100, completed: true },
-  { id: "2", title: "Finish Next.js Portfolio Project", progress: 30, completed: false },
-  { id: "3", title: "Schedule 1-on-1 with a FAANG Mentor", progress: 0, completed: false },
-  { id: "4", title: "Complete 'Data Structures' Roadmap", progress: 65, completed: false },
-];
+
 
 export default function GoalsPage() {
-  const [goals, setGoals] = useState<Goal[]>(FALLBACK_GOALS);
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [newGoalText, setNewGoalText] = useState("");
@@ -30,7 +25,7 @@ export default function GoalsPage() {
       const res = await fetch("/api/goals");
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setGoals(data.map((g: any) => ({ ...g, completed: g.progress >= 100 })));
         }
       }
@@ -122,7 +117,7 @@ export default function GoalsPage() {
 
       <div className="glass-card">
         <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-          {goals.map((goal) => (
+          {goals.length > 0 ? goals.map((goal) => (
             <li 
               key={goal.id} 
               style={{ 
@@ -170,7 +165,11 @@ export default function GoalsPage() {
                 <Trash2 size={18} />
               </button>
             </li>
-          ))}
+          )) : (
+            <div style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--text-muted)" }}>
+              <p>You have no goals. Click "Add Goal" to get started!</p>
+            </div>
+          )}
         </ul>
       </div>
 

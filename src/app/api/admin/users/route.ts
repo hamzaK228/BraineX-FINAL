@@ -45,6 +45,7 @@ export async function GET(req: NextRequest) {
         email: true,
         role: true,
         tier: true,
+        status: true,
         image: true,
         createdAt: true,
         _count: { select: { savedItems: true, goals: true, tasks: true } },

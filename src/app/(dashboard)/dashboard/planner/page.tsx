@@ -100,24 +100,8 @@ export default function PlannerPage() {
     daysArray = [new Date(currentDate)];
   }
 
-  // Initial Dummy Events
-  const [eventsMap, setEventsMap] = useState<any>(() => {
-    const map: any = {};
-    const addE = (daysOffset: number, event: any) => {
-      const d = new Date();
-      d.setDate(d.getDate() + daysOffset);
-      const dateStr = d.toDateString();
-      if (!map[dateStr]) map[dateStr] = [];
-      map[dateStr].push(event);
-    };
-    addE(0, { title: "Submit Application", time: "11:59 PM", color: "#f43f5e" });
-    addE(1, { title: "Physics Lab", time: "10:00 AM", color: "#3b82f6" });
-    addE(2, { title: "Mentor Call", time: "2:00 PM", color: "#a855f7" });
-    addE(2, { title: "Draft Essay", time: "4:00 PM", color: "#10b981" });
-    addE(-1, { title: "Study Group", time: "3:00 PM", color: "#f59e0b" });
-    addE(5, { title: "Review Week", time: "8:00 PM", color: "#6366f1" });
-    return map;
-  });
+  // Initial Events Map
+  const [eventsMap, setEventsMap] = useState<any>({});
 
   // Fetch events from API
   const fetchEvents = useCallback(async () => {
@@ -125,7 +109,7 @@ export default function PlannerPage() {
       const res = await fetch("/api/events");
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           const map: any = {};
           data.forEach((ev: any) => {
             const d = new Date(ev.startDate);

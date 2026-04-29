@@ -164,42 +164,58 @@ export default function TasksPage() {
 
   // --- MANUAL MOVE HANDLER (For mobile/click) ---
   const moveTask = async (sourceColId: string, targetColId: string, taskIndex: number) => {
-    let movedTask: any;
+    let taskToMove: any;
+    
     setColumns((prev: any) => {
-      const newCols = { ...prev };
+      const sourceTasks = [...prev[sourceColId].tasks];
+      taskToMove = sourceTasks[taskIndex];
       
-      movedTask = newCols[sourceColId].tasks[taskIndex];
-      newCols[sourceColId].tasks = [...newCols[sourceColId].tasks];
-      newCols[sourceColId].tasks.splice(taskIndex, 1);
-      
-      newCols[targetColId].tasks = [...newCols[targetColId].tasks, movedTask];
-      
-      return newCols;
+      if (!taskToMove) return prev;
+
+      const newSourceTasks = sourceTasks.filter((_, i) => i !== taskIndex);
+      const newTargetTasks = taskToMove ? [...prev[targetColId].tasks, taskToMove] : prev[targetColId].tasks;
+
+      return {
+        ...prev,
+        [sourceColId]: { ...prev[sourceColId], tasks: newSourceTasks },
+        [targetColId]: { ...prev[targetColId], tasks: newTargetTasks }
+      };
     });
+
     setActiveMenu(null);
 
-    if (movedTask && movedTask.id && !movedTask.id.startsWith("t")) {
-      try {
-        await fetch(`/api/tasks/${movedTask.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: columnToStatus[targetColId] }),
-        });
-      } catch { /* silent */ }
+    // Persistence logic needs the task ID
+    if (taskToMove && taskToMove.id) {
+      const taskIdStr = taskToMove.id.toString();
+      if (!taskIdStr.startsWith("17")) { // Check for temp IDs (starts with 17... for 2024/2025 timestamps)
+        try {
+          await fetch(`/api/tasks/${taskToMove.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: columnToStatus[targetColId] }),
+          });
+        } catch { /* silent */ }
+      }
     }
   };
 
   const deleteTask = async (colId: string, taskIndex: number) => {
     let deletedTaskId: string | undefined;
+    
     setColumns((prev: any) => {
-      const newCols = { ...prev };
-      deletedTaskId = newCols[colId].tasks[taskIndex]?.id;
-      newCols[colId].tasks = newCols[colId].tasks.filter((_: any, i: number) => i !== taskIndex);
-      return newCols;
+      const tasks = prev[colId].tasks;
+      deletedTaskId = tasks[taskIndex]?.id;
+      const newTasks = tasks.filter((_: any, i: number) => i !== taskIndex);
+      
+      return {
+        ...prev,
+        [colId]: { ...prev[colId], tasks: newTasks }
+      };
     });
+
     setActiveMenu(null);
 
-    if (deletedTaskId && !deletedTaskId.startsWith("t")) {
+    if (deletedTaskId && !deletedTaskId.toString().startsWith("17")) {
       try {
         await fetch(`/api/tasks/${deletedTaskId}`, { method: "DELETE" });
       } catch { /* silent */ }
@@ -379,10 +395,15 @@ export default function TasksPage() {
               borderRadius: "20px",
               transition: "all 0.2s"
             }}>
-              <AnimatePresence>
-                {filteredTasks.map((task: any, index: number) => (
-                  <TaskCard key={task.id} task={task} colId={colId} index={col.tasks.findIndex((t: any) => t.id === task.id)} />
-                ))}
+              <AnimatePresence mode="popLayout">
+                {filteredTasks.map((task: any) => {
+                  if (!task || !task.id) return null;
+                  const originalIndex = col.tasks.findIndex((t: any) => t && t.id === task.id);
+                  if (originalIndex === -1) return null;
+                  return (
+                    <TaskCard key={task.id} task={task} colId={colId} index={originalIndex} />
+                  );
+                })}
               </AnimatePresence>
               {filteredTasks.length === 0 && (
                 <div style={{ margin: "auto", color: "var(--text-muted)", fontSize: "0.9rem", fontStyle: "italic", opacity: 0.5 }}>Drop tasks here</div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GraduationCap, Search, Filter, Bookmark, DollarSign, Clock, MapPin, Award, Plus, X, Trash2 } from "lucide-react";
 
@@ -15,23 +15,43 @@ export default function ProgramsPage() {
     visible: { opacity: 1, y: 0 }
   };
 
-  const [programs, setPrograms] = useState([
-    { id: 1, name: "B.S. Computer Science", university: "Stanford University", location: "Stanford, CA", type: "Bachelor's", duration: "4 Years", tuition: "$55,473/yr", match: "High", logo: "https://logo.clearbit.com/stanford.edu" },
-    { id: 2, name: "M.S. Artificial Intelligence", university: "MIT", location: "Cambridge, MA", type: "Master's", duration: "2 Years", tuition: "$53,450/yr", match: "Medium", logo: "https://logo.clearbit.com/mit.edu" },
-    { id: 3, name: "B.A. Economics", university: "University of Oxford", location: "Oxford, UK", type: "Bachelor's", duration: "3 Years", tuition: "£28,950/yr", match: "High", logo: "https://logo.clearbit.com/ox.ac.uk" },
-    { id: 4, name: "B.S. Software Engineering", university: "ETH Zurich", location: "Zurich, Switzerland", type: "Bachelor's", duration: "3 Years", tuition: "CHF 1,460/yr", match: "Very High", logo: "https://logo.clearbit.com/ethz.ch" },
-  ]);
+  const [programs, setPrograms] = useState<any[]>([]);
   const [filter, setFilter] = useState("All");
+
+  const fetchPrograms = async () => {
+    try {
+      const res = await fetch("/api/programs");
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setPrograms(data.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            university: p.university,
+            location: p.location || "TBD",
+            type: p.status || "Bachelor's", // map status to type since model schema is slightly different
+            duration: p.duration || "4 Years",
+            tuition: p.link || "TBD", // using link field as tuition temporarily since we don't have it
+            match: "Medium",
+            logo: `https://www.google.com/s2/favicons?domain=${p.university.toLowerCase().replace(/ /g, "")}.edu&sz=128`
+          })));
+        }
+      }
+    } catch { /* fallback */ }
+  };
+
+  useEffect(() => { fetchPrograms(); }, []);
 
   const [isAdding, setIsAdding] = useState(false);
   const [newProgram, setNewProgram] = useState({ name: "", university: "", location: "", type: "", duration: "", tuition: "" });
 
-  const handleAddProgram = (e: React.FormEvent) => {
+  const handleAddProgram = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProgram.name.trim() || !newProgram.university.trim()) return;
 
+    const tempId = Date.now();
     setPrograms([{
-      id: Date.now(),
+      id: tempId,
       name: newProgram.name,
       university: newProgram.university,
       location: newProgram.location || "TBD",
@@ -44,10 +64,33 @@ export default function ProgramsPage() {
     
     setNewProgram({ name: "", university: "", location: "", type: "", duration: "", tuition: "" });
     setIsAdding(false);
+
+    try {
+      const res = await fetch("/api/programs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          name: newProgram.name, 
+          university: newProgram.university, 
+          duration: newProgram.duration,
+          status: newProgram.type, // type maps to status
+          link: newProgram.tuition // tuition maps to link
+        }),
+      });
+      if (res.ok) {
+        const saved = await res.json();
+        setPrograms(prev => prev.map(p => p.id === tempId ? { ...p, id: saved.id } : p));
+      }
+    } catch {}
   };
 
-  const deleteProgram = (id: number) => {
+  const deleteProgram = async (id: number | string) => {
     setPrograms(programs.filter(prog => prog.id !== id));
+    if (typeof id === 'string' && !id.toString().startsWith("temp")) {
+      try {
+        await fetch(`/api/programs/${id}`, { method: "DELETE" });
+      } catch {}
+    }
   };
 
   return (
@@ -121,12 +164,16 @@ export default function ProgramsPage() {
             onMouseOut={e => { e.currentTarget.style.transform = 'translateX(0)'; e.currentTarget.style.boxShadow = 'none'; }}
             >
               <div style={{ display: "flex", gap: "2rem", alignItems: "center", flexWrap: "wrap" }}>
-                <div style={{ width: "60px", height: "60px", background: "var(--bg-color)", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid var(--card-border)", overflow: "hidden" }}>
-                  {prog.logo && prog.logo.startsWith("http") ? (
-                    <img src={prog.logo} alt={prog.university} style={{ width: "100%", height: "100%", objectFit: "contain", padding: "8px", background: "white" }} />
-                  ) : (
-                    <GraduationCap size={30} color="#10b981" />
-                  )}
+                <div style={{ width: "60px", height: "60px", background: "white", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid var(--card-border)", overflow: "hidden", padding: "6px" }}>
+                  <img 
+                    src={prog.logo} 
+                    alt={prog.university} 
+                    style={{ width: "100%", height: "100%", objectFit: "contain" }} 
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 10v6M2 10l10-5 10 5-10 5z'/%3E%3Cpath d='M6 12v5c3 3 9 3 12 0v-5'/%3E%3C/svg%3E";
+                    }}
+                  />
                 </div>
                 <div>
                   <h3 style={{ margin: "0 0 0.5rem 0", fontSize: "1.2rem" }}>{prog.name}</h3>
@@ -163,8 +210,16 @@ export default function ProgramsPage() {
             </div>
           </motion.div>
         ))}
+        {programs.length === 0 && (
+          <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)", background: "var(--card-bg)", borderRadius: "24px", border: "1px dashed var(--card-border)" }}>
+            <GraduationCap size={48} color="var(--card-border)" style={{ marginBottom: "1rem" }} />
+            <p style={{ margin: "0 0 1rem 0" }}>No programs tracked yet.</p>
+            <button onClick={() => setIsAdding(true)} style={{ background: "#10b981", color: "white", border: "none", padding: "0.75rem 1.5rem", borderRadius: "100px", cursor: "pointer", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
+              <Plus size={18} /> Add Program
+            </button>
+          </div>
+        )}
       </div>
-
       <AnimatePresence>
         {isAdding && (
           <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>

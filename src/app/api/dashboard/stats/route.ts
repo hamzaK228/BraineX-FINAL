@@ -18,6 +18,10 @@ export async function GET() {
     universitiesCount,
     scholarshipsCount,
     unreadNotifications,
+    eventsCount,
+    programsCount,
+    resourcesCount,
+    roadmapsCount,
   ] = await Promise.all([
     prisma.goal.count({ where: { userId } }),
     prisma.task.count({ where: { userId } }),
@@ -27,6 +31,10 @@ export async function GET() {
     prisma.universityTracker.count({ where: { userId } }),
     prisma.scholarshipTracker.count({ where: { userId } }),
     prisma.notification.count({ where: { userId, isRead: false } }),
+    prisma.plannerEvent.count({ where: { userId } }),
+    prisma.programTracker.count({ where: { userId } }),
+    prisma.resource.count({ where: { userId } }),
+    prisma.roadmap.count({ where: { userId } }),
   ]);
 
   return NextResponse.json({
@@ -37,5 +45,9 @@ export async function GET() {
     universities: universitiesCount,
     scholarships: scholarshipsCount,
     unreadNotifications,
+    events: eventsCount,
+    programs: programsCount,
+    resources: resourcesCount,
+    roadmaps: roadmapsCount,
   });
 }

@@ -4,12 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { StickyNote, Plus, X, Trash2, Calendar, FileText } from "lucide-react";
 
-const FALLBACK_NOTES = [
-  { id: "1", title: "College Essay Ideas", content: "Brainstorming for the personal statement. Focus on the volunteering experience in senior year...", date: "Oct 15, 2024", color: "#f59e0b" },
-  { id: "2", title: "Questions for Counselor", content: "1. Early Action vs Early Decision\n2. Financial aid deadlines\n3. Recommendations from teachers", date: "Oct 16, 2024", color: "#8b5cf6" },
-  { id: "3", title: "MIT Interview Prep", content: "Review why MIT, research professors in the CS department, prepare questions to ask them.", date: "Oct 18, 2024", color: "#10b981" },
-];
-
 export default function NotesPage() {
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -21,14 +15,14 @@ export default function NotesPage() {
     visible: { opacity: 1, y: 0 }
   };
 
-  const [notes, setNotes] = useState<any[]>(FALLBACK_NOTES);
+  const [notes, setNotes] = useState<any[]>([]);
 
   const fetchNotes = useCallback(async () => {
     try {
       const res = await fetch("/api/notes");
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setNotes(data.map((n: any) => ({ ...n, date: new Date(n.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) })));
         }
       }

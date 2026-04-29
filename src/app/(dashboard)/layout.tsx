@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { signOut } from "next-auth/react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import styles from "./layout.module.css";
 import { usePathname, useRouter } from "next/navigation";
@@ -247,11 +248,7 @@ export default function DashboardLayout({
             </div>
           </Link>
           
-          <button className={styles.signOutBtn} onClick={() => {
-            fetch('/api/auth/signout', { method: 'POST' }).then(() => {
-              window.location.href = '/login';
-            });
-          }}>
+          <button className={styles.signOutBtn} onClick={() => signOut({ callbackUrl: "/login" })}>
             <LogOut size={20} />
             <span>Sign Out</span>
           </button>
@@ -353,11 +350,7 @@ export default function DashboardLayout({
                     <Link href="/dashboard/settings" onClick={() => setShowUserDropdown(false)} style={{ padding: "0.75rem 1rem", color: "var(--text-color)", textDecoration: "none", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: "0.5rem", transition: "background 0.2s" }} onMouseOver={e => e.currentTarget.style.background = 'var(--bg-color)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
                       <Settings size={16} /> Settings
                     </Link>
-                    <button onClick={() => {
-                      fetch('/api/auth/signout', { method: 'POST' }).then(() => {
-                        window.location.href = '/login';
-                      });
-                    }} style={{ padding: "0.75rem 1rem", color: "#ef4444", textDecoration: "none", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: "0.5rem", background: "transparent", border: "none", cursor: "pointer", textAlign: "left", transition: "background 0.2s", borderTop: "1px solid var(--card-border)" }} onMouseOver={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.05)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+                    <button onClick={() => signOut({ callbackUrl: "/login" })} style={{ padding: "0.75rem 1rem", color: "#ef4444", textDecoration: "none", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: "0.5rem", background: "transparent", border: "none", cursor: "pointer", textAlign: "left", transition: "background 0.2s", borderTop: "1px solid var(--card-border)" }} onMouseOver={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.05)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
                       <LogOut size={16} /> Sign Out
                     </button>
                   </motion.div>

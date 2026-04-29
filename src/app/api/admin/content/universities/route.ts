@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
+import { logAdminActivity } from "@/lib/admin-log";
 import { z } from "zod";
 
 const schema = z.object({
@@ -59,5 +60,14 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
 
   const item = await prisma.contentUniversity.create({ data: parsed.data });
+
+  await logAdminActivity({
+    adminId: session.user!.id!,
+    action: "CREATE",
+    target: "university",
+    targetId: item.id,
+    details: `Created university: ${item.name}`,
+  });
+
   return NextResponse.json(item, { status: 201 });
 }

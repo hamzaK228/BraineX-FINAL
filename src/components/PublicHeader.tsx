@@ -55,9 +55,7 @@ export function PublicHeader() {
     { name: "Universities", href: "/universities" },
     { name: "Programs", href: "/programs" },
     { name: "Scholarships", href: "/scholarships" },
-    { name: "Projects", href: "/projects" },
-    { name: "Roadmaps", href: "/roadmaps" },
-    { name: "Mentors", href: "/mentors" }
+    { name: "Roadmaps", href: "/roadmaps" }
   ];
 
   const menuVariants = {

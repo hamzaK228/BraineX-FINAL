@@ -28,14 +28,7 @@ export default function UniversitiesPage() {
     </div>
   );
 
-  const FALLBACK = [
-    { id: "1", name: "Stanford University", location: "Stanford, CA, USA", rank: "#2", match: "94%", logo: "https://logo.clearbit.com/stanford.edu" },
-    { id: "2", name: "Massachusetts Institute of Technology", location: "Cambridge, MA, USA", rank: "#1", match: "88%", logo: "https://logo.clearbit.com/mit.edu" },
-    { id: "3", name: "University of Oxford", location: "Oxford, UK", rank: "#3", match: "85%", logo: "https://logo.clearbit.com/ox.ac.uk" },
-    { id: "4", name: "ETH Zurich", location: "Zurich, Switzerland", rank: "#7", match: "91%", logo: "https://logo.clearbit.com/ethz.ch" },
-  ];
-
-  const [savedUniversities, setSavedUniversities] = useState<any[]>(FALLBACK);
+  const [savedUniversities, setSavedUniversities] = useState<any[]>([]);
   const [filter, setFilter] = useState("All");
 
   const fetchUnis = useCallback(async () => {
@@ -43,8 +36,15 @@ export default function UniversitiesPage() {
       const res = await fetch("/api/universities");
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          setSavedUniversities(data.map((u: any) => ({ id: u.id, name: u.name, location: u.location || "Unknown", rank: u.ranking || "N/A", match: u.matchScore ? `${u.matchScore}%` : "TBD", logo: "🏫" })));
+        if (Array.isArray(data)) {
+          setSavedUniversities(data.map((u: any) => ({ 
+            id: u.id, 
+            name: u.name, 
+            location: u.location || "Unknown", 
+            rank: u.ranking || "N/A", 
+            match: u.matchScore ? `${u.matchScore}%` : "TBD", 
+            logo: `https://www.google.com/s2/favicons?domain=${u.name.toLowerCase().replace(/ /g, "")}.edu&sz=128`
+          })));
         }
       }
     } catch { /* fallback */ }
@@ -143,12 +143,16 @@ export default function UniversitiesPage() {
               
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-                  <div style={{ width: "60px", height: "60px", background: "var(--bg-color)", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid var(--card-border)", overflow: "hidden" }}>
-                    {uni.logo && uni.logo.startsWith("http") ? (
-                      <img src={uni.logo} alt={uni.name} style={{ width: "100%", height: "100%", objectFit: "contain", padding: "8px", background: "white" }} />
-                    ) : (
-                      <span style={{ fontSize: "1.5rem", fontWeight: "bold", color: "#6366f1" }}>{uni.name.charAt(0)}</span>
-                    )}
+                  <div style={{ width: "60px", height: "60px", background: "white", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid var(--card-border)", overflow: "hidden", padding: "6px" }}>
+                    <img 
+                      src={uni.logo} 
+                      alt={uni.name} 
+                      style={{ width: "100%", height: "100%", objectFit: "contain" }} 
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 10v6M2 10l10-5 10 5-10 5z'/%3E%3Cpath d='M6 12v5c3 3 9 3 12 0v-5'/%3E%3C/svg%3E";
+                      }}
+                    />
                   </div>
                   <div>
                     <h3 style={{ margin: "0 0 0.25rem 0", fontSize: "1.1rem", lineHeight: "1.3" }}>{uni.name}</h3>
@@ -194,6 +198,15 @@ export default function UniversitiesPage() {
             </ComfortCard>
           </motion.div>
         ))}
+        {savedUniversities.length === 0 && (
+          <div style={{ gridColumn: "1 / -1", padding: "3rem", textAlign: "center", color: "var(--text-muted)", background: "var(--card-bg)", borderRadius: "24px", border: "1px dashed var(--card-border)" }}>
+            <Building size={48} color="var(--card-border)" style={{ marginBottom: "1rem" }} />
+            <p style={{ margin: "0 0 1rem 0" }}>No universities tracked yet.</p>
+            <button onClick={() => setIsAdding(true)} style={{ background: "#6366f1", color: "white", border: "none", padding: "0.75rem 1.5rem", borderRadius: "100px", cursor: "pointer", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
+              <Plus size={18} /> Add University
+            </button>
+          </div>
+        )}
       </div>
       <AnimatePresence>
         {isAdding && (

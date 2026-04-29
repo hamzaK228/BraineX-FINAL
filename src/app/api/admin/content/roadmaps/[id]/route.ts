@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
+import { logAdminActivity } from "@/lib/admin-log";
 import { z } from "zod";
 
 const updateSchema = z.object({
@@ -27,6 +28,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const parsed = updateSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
   const item = await prisma.contentRoadmap.update({ where: { id }, data: parsed.data });
+  await logAdminActivity({ adminId: session.user!.id!, action: "UPDATE", target: "roadmap", targetId: id, details: `Updated roadmap: ${item.title}` });
   return NextResponse.json(item);
 }
 
@@ -34,6 +36,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const session = await requireAdmin();
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { id } = await params;
+  const item = await prisma.contentRoadmap.findUnique({ where: { id }, select: { title: true } });
   await prisma.contentRoadmap.delete({ where: { id } });
+  await logAdminActivity({ adminId: session.user!.id!, action: "DELETE", target: "roadmap", targetId: id, details: `Deleted roadmap: ${item?.title || id}` });
   return NextResponse.json({ success: true });
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { signOut } from "next-auth/react";
 import { Settings, User, Bell, Lock, Globe, Palette, LogOut, ChevronRight, ChevronDown } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -371,7 +372,7 @@ export default function SettingsPage() {
         ))}
 
         <motion.div variants={itemVariants}>
-          <button style={{ width: "100%", padding: "1.25rem", borderRadius: "20px", background: "rgba(239, 68, 68, 0.05)", border: "1px solid rgba(239, 68, 68, 0.2)", color: "#ef4444", fontWeight: "600", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem", cursor: "pointer", transition: "all 0.2s" }} onMouseOver={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'} onMouseOut={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.05)'}>
+          <button onClick={() => signOut({ callbackUrl: "/login" })} style={{ width: "100%", padding: "1.25rem", borderRadius: "20px", background: "rgba(239, 68, 68, 0.05)", border: "1px solid rgba(239, 68, 68, 0.2)", color: "#ef4444", fontWeight: "600", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem", cursor: "pointer", transition: "all 0.2s" }} onMouseOver={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'} onMouseOut={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.05)'}>
             <LogOut size={20} /> Sign Out of All Devices
           </button>
         </motion.div>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Map, Flag, CheckCircle2, Circle, Lock, Plus, X, ArrowLeft, MoreVertical, Route, Trash2 } from "lucide-react";
+import { Map, Flag, CheckCircle2, Circle, Lock, Plus, X, ArrowLeft, MoreVertical, Route, Trash2, Search } from "lucide-react";
 
 export default function RoadmapsPage() {
   const containerVariants = {
@@ -21,40 +21,14 @@ export default function RoadmapsPage() {
   };
 
   // State for all roadmaps
-  const [roadmaps, setRoadmaps] = useState([
-    {
-      id: 1,
-      title: "Application Roadmap",
-      desc: "Your step-by-step journey to getting accepted.",
-      iconColor: "#8b5cf6",
-      steps: [
-        { id: 101, title: "Standardized Testing", desc: "SAT/ACT Prep and Exams", status: "completed", date: "Aug 2024" },
-        { id: 102, title: "University Shortlisting", desc: "Finalize top 10 choices", status: "completed", date: "Sep 2024" },
-        { id: 103, title: "Personal Statement", desc: "Drafting and revision", status: "in-progress", date: "Oct 2024" },
-        { id: 104, title: "Recommendation Letters", desc: "Request from professors", status: "in-progress", date: "Oct 2024" },
-        { id: 105, title: "Submit Applications", desc: "Early Action / Regular", status: "locked", date: "Nov-Jan 2025" },
-        { id: 106, title: "Financial Aid (FAFSA)", desc: "Submit all documentation", status: "locked", date: "Feb 2025" },
-        { id: 107, title: "Decision Letters", desc: "Acceptances arrive!", status: "locked", date: "Mar-Apr 2025" },
-      ]
-    },
-    {
-      id: 2,
-      title: "Learn Python",
-      desc: "Master Python programming from scratch to advanced.",
-      iconColor: "#10b981",
-      steps: [
-        { id: 201, title: "Basics of Python", desc: "Variables, loops, and conditions", status: "in-progress", date: "Anytime" },
-        { id: 202, title: "Data Structures", desc: "Lists, dictionaries, sets", status: "locked", date: "TBD" },
-      ]
-    }
-  ]);
+  const [roadmaps, setRoadmaps] = useState<any[]>([]);
 
   const fetchRoadmaps = useCallback(async () => {
     try {
       const res = await fetch("/api/roadmaps");
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setRoadmaps(data.map((rm: any) => ({ id: rm.id, title: rm.title, desc: rm.description || "", iconColor: rm.color || "#8b5cf6", steps: (rm.steps || []).map((s: any) => ({ id: s.id, title: s.title, desc: s.description || "", status: s.status, date: s.date || "TBD" })) })));
         }
       }
@@ -104,7 +78,7 @@ export default function RoadmapsPage() {
   };
 
   const markComplete = async (roadmapId: number, stepId: number) => {
-    setRoadmaps(roadmaps.map(rm => rm.id === roadmapId ? { ...rm, steps: rm.steps.map(step => step.id === stepId ? { ...step, status: "completed" } : step) } : rm));
+    setRoadmaps(roadmaps.map(rm => rm.id === roadmapId ? { ...rm, steps: rm.steps.map((step: any) => step.id === stepId ? { ...step, status: "completed" } : step) } : rm));
     try { await fetch(`/api/roadmaps/${roadmapId}/steps/${stepId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "completed" }) }); } catch { /* silent */ }
   };
 
@@ -114,7 +88,7 @@ export default function RoadmapsPage() {
   };
 
   const deleteStep = async (roadmapId: number, stepId: number) => {
-    setRoadmaps(roadmaps.map(rm => rm.id === roadmapId ? { ...rm, steps: rm.steps.filter(step => step.id !== stepId) } : rm));
+    setRoadmaps(roadmaps.map(rm => rm.id === roadmapId ? { ...rm, steps: rm.steps.filter((step: any) => step.id !== stepId) } : rm));
     try { await fetch(`/api/roadmaps/${roadmapId}/steps/${stepId}`, { method: "DELETE" }); } catch { /* silent */ }
   };
 
@@ -249,6 +223,15 @@ export default function RoadmapsPage() {
                 </div>
               </motion.div>
             ))}
+            {roadmaps.length === 0 && (
+              <div style={{ gridColumn: "1 / -1", padding: "3rem", textAlign: "center", color: "var(--text-muted)", background: "var(--card-bg)", borderRadius: "24px", border: "1px dashed var(--card-border)" }}>
+                <Map size={48} color="var(--card-border)" style={{ marginBottom: "1rem" }} />
+                <p style={{ margin: "0 0 1rem 0" }}>No roadmaps created yet.</p>
+                <button onClick={() => setIsAddingRoadmap(true)} style={{ background: "#6366f1", color: "white", border: "none", padding: "0.75rem 1.5rem", borderRadius: "100px", cursor: "pointer", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
+                  <Plus size={18} /> Create Roadmap
+                </button>
+              </div>
+            )}
           </div>
         </>
       )}
@@ -262,7 +245,7 @@ export default function RoadmapsPage() {
             <div>
               <button 
                 onClick={() => setActiveRoadmapId(null)} 
-                style={{ background: "transparent", border: "none", color: "#ec4899", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "0.5rem", fontWeight: "700", fontSize: "0.95rem", marginBottom: "1rem", padding: "0.5rem 1rem", borderRadius: "100px", border: "1px solid #ec489950", transition: "all 0.2s" }}
+                style={{ background: "transparent", color: "#ec4899", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "0.5rem", fontWeight: "700", fontSize: "0.95rem", marginBottom: "1rem", padding: "0.5rem 1rem", borderRadius: "100px", border: "1px solid #ec489950", transition: "all 0.2s" }}
                 onMouseOver={e => e.currentTarget.style.background = "#ec489915"}
                 onMouseOut={e => e.currentTarget.style.background = "transparent"}
               >
@@ -288,7 +271,7 @@ export default function RoadmapsPage() {
                   No steps in this roadmap yet. Click "Add Step" to begin!
                 </div>
               )}
-              {activeRoadmap.steps.map((step, i) => (
+              {activeRoadmap.steps.map((step: any, i: number) => (
                 <motion.div variants={stepVariants} key={step.id} style={{ display: "flex", alignItems: "flex-start", gap: "2rem", position: "relative" }}>
                   
                   {/* Timeline Icon Node */}

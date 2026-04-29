@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, Circle, ArrowRight, Plus, Building, GraduationCap, ListTodo, FileText, BookOpen, Clock, Calendar, CalendarDays, TrendingUp, User, Map } from "lucide-react";
+import { CheckCircle2, Circle, ArrowRight, Plus, Building, GraduationCap, ListTodo, FileText, BookOpen, Clock, Calendar, CalendarDays, TrendingUp, User, Map, Target, Lightbulb } from "lucide-react";
 import Link from "next/link";
 
 export default function DashboardPage() {
@@ -279,13 +279,13 @@ export default function DashboardPage() {
           </div>
           
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem" }}>
-            {[
+            {[].length > 0 ? [
               { day: "Mon", date: "12", events: [{ title: "Physics Lab", color: "#3b82f6" }] },
               { day: "Tue", date: "13", events: [{ title: "Mentor Call", color: "#a855f7" }, { title: "Draft Essay", color: "#10b981" }] },
               { day: "Wed", date: "14", isToday: true, events: [{ title: "Submit Application", color: "#f43f5e" }] },
               { day: "Thu", date: "15", events: [] },
               { day: "Fri", date: "16", events: [{ title: "Study Group", color: "#f59e0b" }] },
-            ].map((d, i) => (
+            ].map((d: any, i: number) => (
               <div key={i} style={{ 
                 background: d.isToday ? "rgba(99,102,241,0.05)" : "var(--bg-color)", 
                 border: d.isToday ? "2px solid #6366f1" : "1px solid var(--card-border)", 
@@ -302,14 +302,19 @@ export default function DashboardPage() {
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", flex: 1 }}>
                   {d.events.length === 0 ? (
                     <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", textAlign: "center", marginTop: "auto", marginBottom: "auto" }}>Free Day</div>
-                  ) : d.events.map((e, j) => (
+                  ) : d.events.map((e: any, j: number) => (
                     <div key={j} style={{ background: `rgba(${e.color === '#3b82f6' ? '59,130,246' : e.color === '#a855f7' ? '168,85,247' : e.color === '#10b981' ? '16,185,129' : e.color === '#f43f5e' ? '244,63,94' : '245,158,11'}, 0.1)`, borderLeft: `3px solid ${e.color}`, padding: "0.5rem", borderRadius: "0 6px 6px 0", fontSize: "0.8rem", fontWeight: "600", color: "var(--text-color)" }}>
                       {e.title}
                     </div>
                   ))}
                 </div>
               </div>
-            ))}
+            )) : (
+              <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "3rem", color: "var(--text-muted)" }}>
+                <CalendarDays size={32} color="var(--card-border)" style={{ marginBottom: "1rem" }} />
+                <p>No events scheduled for this week.</p>
+              </div>
+            )}
           </div>
         </ComfortCard>
         </motion.div>
@@ -362,20 +367,28 @@ export default function DashboardPage() {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#f43f5e" }}></div>
-                <div>
-                  <div style={{ fontSize: "0.95rem", fontWeight: "600" }}>Oct 15 - Early Action Deadline</div>
-                  <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Don't forget to submit SAT scores</div>
+              {[].length > 0 ? (
+                <>
+                  <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                    <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#f43f5e" }}></div>
+                    <div>
+                      <div style={{ fontSize: "0.95rem", fontWeight: "600" }}>Oct 15 - Early Action Deadline</div>
+                      <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Don't forget to submit SAT scores</div>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                    <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#f59e0b" }}></div>
+                    <div>
+                      <div style={{ fontSize: "0.95rem", fontWeight: "600" }}>Oct 25 - NSF Fellowship</div>
+                      <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Final review with mentor</div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div style={{ textAlign: "center", padding: "1rem", color: "var(--text-muted)", fontSize: "0.9rem" }}>
+                  No important dates found.
                 </div>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#f59e0b" }}></div>
-                <div>
-                  <div style={{ fontSize: "0.95rem", fontWeight: "600" }}>Oct 25 - NSF Fellowship</div>
-                  <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Final review with mentor</div>
-                </div>
-              </div>
+              )}
             </div>
           </ComfortCard>
         </motion.div>
@@ -396,31 +409,8 @@ export default function DashboardPage() {
             </div>
             
             <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-              {/* Progress Bar 1 */}
-              <div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                  <div style={{ fontWeight: "600", display: "flex", alignItems: "center", gap: "0.5rem" }}><GraduationCap size={18} color="#a855f7" /> University Applications</div>
-                  <span style={{ fontWeight: "bold", color: "#a855f7" }}>40%</span>
-                </div>
-                <div style={{ height: "10px", background: "rgba(168,85,247,0.15)", borderRadius: "5px", overflow: "hidden" }}>
-                  <div style={{ height: "100%", width: "40%", background: "#a855f7", borderRadius: "5px" }}></div>
-                </div>
-                <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.85rem", color: "var(--text-muted)" }}>2 of 5 applications submitted</p>
-              </div>
-
-              {/* Progress Bar 2 */}
-              <div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                  <div style={{ fontWeight: "600", display: "flex", alignItems: "center", gap: "0.5rem" }}><Map size={18} color="#10b981" /> Active Roadmaps</div>
-                  <span style={{ fontWeight: "bold", color: "#10b981" }}>65%</span>
-                </div>
-                <div style={{ height: "10px", background: "rgba(16,185,129,0.15)", borderRadius: "5px", overflow: "hidden" }}>
-                  <div style={{ height: "100%", width: "65%", background: "#10b981", borderRadius: "5px" }}></div>
-                </div>
-                <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.85rem", color: "var(--text-muted)" }}>Data Structures module almost complete</p>
-              </div>
-
-              {/* Progress Bar 3 */}
+              {/* Profile Strength - Only show if there's actually some profile data (e.g., more than just a name) */}
+              {[].length > 0 && (
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
                   <div style={{ fontWeight: "600", display: "flex", alignItems: "center", gap: "0.5rem" }}><User size={18} color="#f59e0b" /> Profile Strength</div>
@@ -431,6 +421,42 @@ export default function DashboardPage() {
                 </div>
                 <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.85rem", color: "var(--text-muted)" }}>Add test scores to reach 100%</p>
               </div>
+              )}
+
+              {/* Progress Bar 1 - Only show if there's progress */}
+              {[].length > 0 && (
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+                  <div style={{ fontWeight: "600", display: "flex", alignItems: "center", gap: "0.5rem" }}><GraduationCap size={18} color="#a855f7" /> University Applications</div>
+                  <span style={{ fontWeight: "bold", color: "#a855f7" }}>40%</span>
+                </div>
+                <div style={{ height: "10px", background: "rgba(168,85,247,0.15)", borderRadius: "5px", overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: "40%", background: "#a855f7", borderRadius: "5px" }}></div>
+                </div>
+                <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.85rem", color: "var(--text-muted)" }}>2 of 5 applications submitted</p>
+              </div>
+              )}
+
+              {/* Progress Bar 2 - Only show if there's progress */}
+              {[].length > 0 && (
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+                  <div style={{ fontWeight: "600", display: "flex", alignItems: "center", gap: "0.5rem" }}><Map size={18} color="#10b981" /> Active Roadmaps</div>
+                  <span style={{ fontWeight: "bold", color: "#10b981" }}>65%</span>
+                </div>
+                <div style={{ height: "10px", background: "rgba(16,185,129,0.15)", borderRadius: "5px", overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: "65%", background: "#10b981", borderRadius: "5px" }}></div>
+                </div>
+                <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.85rem", color: "var(--text-muted)" }}>Data Structures module almost complete</p>
+              </div>
+              )}
+
+              {[].length === 0 && (
+                <div style={{ textAlign: "center", padding: "3rem", color: "var(--text-muted)", border: "1px dashed var(--card-border)", borderRadius: "16px" }}>
+                  <TrendingUp size={32} color="var(--card-border)" style={{ marginBottom: "1rem" }} />
+                  <p>Start your first roadmap or application to see progress here.</p>
+                </div>
+              )}
             </div>
           </ComfortCard>
         </motion.div>
@@ -490,20 +516,30 @@ export default function DashboardPage() {
               <Link href="/resources" style={{ color: "#6366f1", fontSize: "0.95rem", fontWeight: "600", textDecoration: "none" }}>Browse All</Link>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              <Link href="#" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1rem", background: "var(--bg-color)", borderRadius: "12px", border: "1px solid var(--card-border)", textDecoration: "none", color: "var(--text-color)", transition: "transform 0.2s" }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
-                <div style={{ padding: "0.6rem", background: "rgba(168,85,247,0.1)", color: "#a855f7", borderRadius: "8px" }}><FileText size={20} /></div>
-                <div style={{ flex: 1 }}>
-                  <h4 style={{ margin: 0, fontSize: "1rem" }}>Ultimate Essay Guide</h4>
-                  <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--text-muted)" }}>PDF Document • 2.4 MB</p>
+              {[].length > 0 ? (
+                <>
+                  <Link href="#" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1rem", background: "var(--bg-color)", borderRadius: "12px", border: "1px solid var(--card-border)", textDecoration: "none", color: "var(--text-color)", transition: "transform 0.2s" }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
+                    <div style={{ padding: "0.6rem", background: "rgba(168,85,247,0.1)", color: "#a855f7", borderRadius: "8px" }}><FileText size={20} /></div>
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{ margin: 0, fontSize: "1rem" }}>Ultimate Essay Guide</h4>
+                      <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--text-muted)" }}>PDF Document • 2.4 MB</p>
+                    </div>
+                  </Link>
+                  <Link href="#" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1rem", background: "var(--bg-color)", borderRadius: "12px", border: "1px solid var(--card-border)", textDecoration: "none", color: "var(--text-color)", transition: "transform 0.2s" }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
+                    <div style={{ padding: "0.6rem", background: "rgba(59,130,246,0.1)", color: "#3b82f6", borderRadius: "8px" }}><BookOpen size={20} /></div>
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{ margin: 0, fontSize: "1rem" }}>Interview Prep Course</h4>
+                      <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--text-muted)" }}>Video Series • 45 mins</p>
+                    </div>
+                  </Link>
+                </>
+              ) : (
+                <div style={{ textAlign: "center", padding: "2rem", color: "var(--text-muted)", border: "1px dashed var(--card-border)", borderRadius: "12px" }}>
+                  <BookOpen size={32} color="var(--card-border)" style={{ marginBottom: "1rem" }} />
+                  <p>Explore resources to see them here.</p>
+                  <Link href="/resources" style={{ color: "#6366f1", fontWeight: "600", textDecoration: "none", fontSize: "0.9rem" }}>Browse Resources</Link>
                 </div>
-              </Link>
-              <Link href="#" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1rem", background: "var(--bg-color)", borderRadius: "12px", border: "1px solid var(--card-border)", textDecoration: "none", color: "var(--text-color)", transition: "transform 0.2s" }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
-                <div style={{ padding: "0.6rem", background: "rgba(59,130,246,0.1)", color: "#3b82f6", borderRadius: "8px" }}><BookOpen size={20} /></div>
-                <div style={{ flex: 1 }}>
-                  <h4 style={{ margin: 0, fontSize: "1rem" }}>Interview Prep Course</h4>
-                  <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--text-muted)" }}>Video Series • 45 mins</p>
-                </div>
-              </Link>
+              )}
             </div>
           </ComfortCard>
         </motion.div>
@@ -524,43 +560,34 @@ export default function DashboardPage() {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-              {/* Roadmap Item 1 */}
-              <div style={{ background: "var(--bg-color)", border: "1px solid var(--card-border)", borderRadius: "16px", padding: "1.5rem" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
-                  <div>
-                    <h4 style={{ margin: "0 0 0.25rem 0", fontSize: "1.15rem" }}>Data Structures & Algorithms</h4>
-                    <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-muted)" }}>Module 4: Trees & Graphs</p>
+              {[].length > 0 ? (
+                <>
+                  {/* Roadmap Item 1 */}
+                  <div style={{ background: "var(--bg-color)", border: "1px solid var(--card-border)", borderRadius: "16px", padding: "1.5rem" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
+                      <div>
+                        <h4 style={{ margin: "0 0 0.25rem 0", fontSize: "1.15rem" }}>Data Structures & Algorithms</h4>
+                        <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-muted)" }}>Module 4: Trees & Graphs</p>
+                      </div>
+                      <span style={{ background: "rgba(16,185,129,0.1)", color: "#10b981", padding: "0.4rem 0.8rem", borderRadius: "100px", fontSize: "0.85rem", fontWeight: "bold" }}>
+                        65% Done
+                      </span>
+                    </div>
+                    <div style={{ height: "8px", background: "rgba(16,185,129,0.15)", borderRadius: "4px", overflow: "hidden", marginBottom: "1.25rem" }}>
+                      <div style={{ height: "100%", width: "65%", background: "#10b981", borderRadius: "4px" }} />
+                    </div>
+                    <button className="ds-btn ds-btn-primary" style={{ width: "100%", padding: "0.75rem", borderRadius: "12px", background: "var(--card-border)", color: "var(--text-color)", border: "none", fontWeight: "600", cursor: "pointer", transition: "background 0.2s" }} onMouseOver={(e) => e.currentTarget.style.background = 'rgba(99,102,241,0.1)'} onMouseOut={(e) => e.currentTarget.style.background = 'var(--card-border)'}>
+                      Continue Learning
+                    </button>
                   </div>
-                  <span style={{ background: "rgba(16,185,129,0.1)", color: "#10b981", padding: "0.4rem 0.8rem", borderRadius: "100px", fontSize: "0.85rem", fontWeight: "bold" }}>
-                    65% Done
-                  </span>
+                </>
+              ) : (
+                <div style={{ textAlign: "center", padding: "3rem", color: "var(--text-muted)", border: "1px dashed var(--card-border)", borderRadius: "16px" }}>
+                  <Map size={32} color="var(--card-border)" style={{ marginBottom: "1rem" }} />
+                  <p>No active roadmaps. Explore roadmaps to start learning!</p>
+                  <Link href="/roadmaps" style={{ color: "#6366f1", fontWeight: "600", textDecoration: "none", fontSize: "0.9rem" }}>Browse Roadmaps</Link>
                 </div>
-                <div style={{ height: "8px", background: "rgba(16,185,129,0.15)", borderRadius: "4px", overflow: "hidden", marginBottom: "1.25rem" }}>
-                  <div style={{ height: "100%", width: "65%", background: "#10b981", borderRadius: "4px" }} />
-                </div>
-                <button className="ds-btn ds-btn-primary" style={{ width: "100%", padding: "0.75rem", borderRadius: "12px", background: "var(--card-border)", color: "var(--text-color)", border: "none", fontWeight: "600", cursor: "pointer", transition: "background 0.2s" }} onMouseOver={(e) => e.currentTarget.style.background = 'rgba(99,102,241,0.1)'} onMouseOut={(e) => e.currentTarget.style.background = 'var(--card-border)'}>
-                  Continue Learning
-                </button>
-              </div>
-
-              {/* Roadmap Item 2 */}
-              <div style={{ background: "var(--bg-color)", border: "1px solid var(--card-border)", borderRadius: "16px", padding: "1.5rem" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
-                  <div>
-                    <h4 style={{ margin: "0 0 0.25rem 0", fontSize: "1.15rem" }}>Machine Learning Fundamentals</h4>
-                    <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-muted)" }}>Module 1: Intro to Python</p>
-                  </div>
-                  <span style={{ background: "rgba(99,102,241,0.1)", color: "#6366f1", padding: "0.4rem 0.8rem", borderRadius: "100px", fontSize: "0.85rem", fontWeight: "bold" }}>
-                    12% Done
-                  </span>
-                </div>
-                <div style={{ height: "8px", background: "rgba(99,102,241,0.15)", borderRadius: "4px", overflow: "hidden", marginBottom: "1.25rem" }}>
-                  <div style={{ height: "100%", width: "12%", background: "#6366f1", borderRadius: "4px" }} />
-                </div>
-                <button className="ds-btn ds-btn-primary" style={{ width: "100%", padding: "0.75rem", borderRadius: "12px", background: "var(--card-border)", color: "var(--text-color)", border: "none", fontWeight: "600", cursor: "pointer", transition: "background 0.2s" }} onMouseOver={(e) => e.currentTarget.style.background = 'rgba(99,102,241,0.1)'} onMouseOut={(e) => e.currentTarget.style.background = 'var(--card-border)'}>
-                  Continue Learning
-                </button>
-              </div>
+              )}
             </div>
           </ComfortCard>
         </motion.div>
@@ -573,9 +600,11 @@ export default function DashboardPage() {
                 <span style={{ fontSize: "1.5rem" }}>📈</span>
                 <h3 style={{ margin: 0, fontSize: "1.4rem", fontWeight: "700" }}>Activity Tracker</h3>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "rgba(236,72,153,0.1)", color: "#ec4899", padding: "0.4rem 0.8rem", borderRadius: "8px", fontWeight: "bold", fontSize: "0.9rem" }}>
-                🔥 5 Day Streak
-              </div>
+              {[].length > 0 && (
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "rgba(236,72,153,0.1)", color: "#ec4899", padding: "0.4rem 0.8rem", borderRadius: "8px", fontWeight: "bold", fontSize: "0.9rem" }}>
+                  🔥 5 Day Streak
+                </div>
+              )}
             </div>
 
             {/* Simulated Heatmap */}
@@ -621,16 +650,15 @@ export default function DashboardPage() {
             <div>
               <h4 style={{ margin: "0 0 1rem 0", fontSize: "1.1rem", color: "var(--text-muted)" }}>Recent Actions</h4>
               <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "1rem" }}>
-                <li style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                  <div style={{ width: 8, height: 8, background: "#10b981", borderRadius: "50%" }}></div>
-                  <span style={{ fontSize: "0.95rem" }}>Completed <strong>Arrays & Strings</strong> quiz.</span>
-                  <span style={{ marginLeft: "auto", fontSize: "0.8rem", color: "var(--text-muted)" }}>2h ago</span>
-                </li>
-                <li style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                  <div style={{ width: 8, height: 8, background: "#f59e0b", borderRadius: "50%" }}></div>
-                  <span style={{ fontSize: "0.95rem" }}>Saved <strong>Rhodes Scholarship</strong>.</span>
-                  <span style={{ marginLeft: "auto", fontSize: "0.8rem", color: "var(--text-muted)" }}>Yesterday</span>
-                </li>
+                {[].length > 0 ? [
+                  <li key="1" style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                    <div style={{ width: 8, height: 8, background: "#10b981", borderRadius: "50%" }}></div>
+                    <span style={{ fontSize: "0.95rem" }}>Completed <strong>Arrays & Strings</strong> quiz.</span>
+                    <span style={{ marginLeft: "auto", fontSize: "0.8rem", color: "var(--text-muted)" }}>2h ago</span>
+                  </li>
+                ] : (
+                  <li style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>No recent activity.</li>
+                )}
               </ul>
             </div>
           </ComfortCard>

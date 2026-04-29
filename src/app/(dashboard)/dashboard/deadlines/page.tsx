@@ -15,21 +15,14 @@ export default function DeadlinesPage() {
     visible: { opacity: 1, y: 0 }
   };
 
-  const FALLBACK_DEADLINES = [
-    { id: "1", title: "Stanford Early Action", type: "Application", date: "Nov 1, 2024", daysLeft: 18, color: "#f43f5e", status: "urgent" },
-    { id: "2", title: "FAFSA Submission", type: "Financial Aid", date: "Nov 15, 2024", daysLeft: 32, color: "#f59e0b", status: "upcoming" },
-    { id: "3", title: "SAT Registration", type: "Testing", date: "Dec 5, 2024", daysLeft: 52, color: "#3b82f6", status: "upcoming" },
-    { id: "4", title: "Oxford Regular Decision", type: "Application", date: "Jan 1, 2025", daysLeft: 79, color: "#10b981", status: "future" },
-  ];
-
-  const [deadlines, setDeadlines] = useState<any[]>(FALLBACK_DEADLINES);
+  const [deadlines, setDeadlines] = useState<any[]>([]);
 
   const fetchDeadlines = useCallback(async () => {
     try {
       const res = await fetch("/api/deadlines");
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setDeadlines(data.map((d: any) => {
             const targetDate = new Date(d.dueDate);
             const today = new Date();
@@ -167,6 +160,15 @@ export default function DeadlinesPage() {
             </div>
           </motion.div>
         ))}
+        {deadlines.length === 0 && (
+          <div style={{ gridColumn: "1 / -1", padding: "3rem", textAlign: "center", color: "var(--text-muted)", background: "var(--card-bg)", borderRadius: "24px", border: "1px dashed var(--card-border)" }}>
+            <Clock size={48} color="var(--card-border)" style={{ marginBottom: "1rem" }} />
+            <p style={{ margin: "0 0 1rem 0" }}>No deadlines tracked yet.</p>
+            <button onClick={() => setIsAdding(true)} style={{ background: "#f43f5e", color: "white", border: "none", padding: "0.75rem 1.5rem", borderRadius: "100px", cursor: "pointer", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
+              <Plus size={18} /> Add Deadline
+            </button>
+          </div>
+        )}
       </div>
 
       <AnimatePresence>

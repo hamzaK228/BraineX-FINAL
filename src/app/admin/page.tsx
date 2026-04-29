@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Users, BookOpen, GraduationCap, DollarSign, TrendingUp, Search, Bell, Settings, LogOut, ChevronDown, CheckCircle2, AlertCircle, ArrowUpRight, ArrowDownRight, UserPlus, FileText, MoreVertical, Database } from "lucide-react";
+import { Users, BookOpen, GraduationCap, TrendingUp, Search, Bell, Settings, ChevronDown, CheckCircle2, AlertCircle, ArrowUpRight, ArrowDownRight, UserPlus, FileText, MoreVertical, Database, ShieldBan, ShieldCheck, Trash2, Activity } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { AdminContentManager } from "@/components/AdminContentManager";
@@ -14,6 +14,8 @@ export default function AdminDashboard() {
   const [isLoadingSession, setIsLoadingSession] = useState(true);
   const [apiStats, setApiStats] = useState<any>(null);
   const [apiUsers, setApiUsers] = useState<any[]>([]);
+  const [apiActivity, setApiActivity] = useState<any[]>([]);
+  const [userActionLoading, setUserActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/auth/session')
@@ -42,7 +44,32 @@ export default function AdminDashboard() {
     } catch {}
   }, []);
 
-  useEffect(() => { if (!isLoadingSession) { fetchStats(); fetchUsers(); } }, [isLoadingSession, fetchStats, fetchUsers]);
+  const fetchActivity = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/activity?limit=10');
+      if (res.ok) { const d = await res.json(); setApiActivity(d.items || []); }
+    } catch {}
+  }, []);
+
+  const handleBlockUser = async (userId: string, currentStatus: string) => {
+    setUserActionLoading(userId);
+    try {
+      const newStatus = currentStatus === 'BLOCKED' ? 'ACTIVE' : 'BLOCKED';
+      const res = await fetch(`/api/admin/users/${userId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) });
+      if (res.ok) { fetchUsers(); fetchActivity(); }
+    } catch {} finally { setUserActionLoading(null); }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
+    setUserActionLoading(userId);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
+      if (res.ok) { fetchUsers(); fetchStats(); fetchActivity(); }
+    } catch {} finally { setUserActionLoading(null); }
+  };
+
+  useEffect(() => { if (!isLoadingSession) { fetchStats(); fetchUsers(); fetchActivity(); } }, [isLoadingSession, fetchStats, fetchUsers, fetchActivity]);
 
   if (isLoadingSession) {
     return <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center' }}>Verifying Administrator Access...</div>;
@@ -61,22 +88,19 @@ export default function AdminDashboard() {
     { title: "Messages", value: "—", change: "loading", up: true, icon: BookOpen, color: "f59e0b" },
   ];
 
-  // Use real users from API, fallback to mock
-  const recentUsers = apiUsers.length > 0 ? apiUsers.map((u: any) => ({
-    id: u.id, name: u.name || "Unknown", email: u.email, status: "Active", plan: u.tier || "Free",
+  // Use real users from API
+  const recentUsers = apiUsers.map((u: any) => ({
+    id: u.id, name: u.name || "Unknown", email: u.email, status: u.status || "ACTIVE", role: u.role || "STUDENT", plan: u.tier || "Free",
     joinDate: new Date(u.createdAt).toLocaleDateString()
-  })) : [
-    { id: 1, name: "Emma Thompson", email: "emma.t@example.com", status: "Active", plan: "Pro", joinDate: "2 hours ago" },
-    { id: 2, name: "David Chen", email: "david.c@example.com", status: "Pending", plan: "Free", joinDate: "5 hours ago" },
-    { id: 3, name: "Sarah Williams", email: "sarah.w@example.com", status: "Active", plan: "Free", joinDate: "1 day ago" },
-  ];
+  }));
 
-  const activities = [
-    { id: 1, type: "user", text: "Emma Thompson upgraded to Pro plan", time: "10 min ago", icon: TrendingUp, color: "10b981" },
-    { id: 2, type: "mentor", text: "New mentor application from Dr. R. Patel", time: "45 min ago", icon: UserPlus, color: "3b82f6" },
-    { id: 3, type: "system", text: "Database backup completed successfully", time: "2 hours ago", icon: CheckCircle2, color: "8b5cf6" },
-    { id: 4, type: "alert", text: "Failed login attempts spike detected", time: "5 hours ago", icon: AlertCircle, color: "f43f5e" },
-    { id: 5, type: "content", text: "50 new scholarships imported via API", time: "1 day ago", icon: FileText, color: "f59e0b" },
+  const iconMap: Record<string, any> = { CREATE: FileText, UPDATE: CheckCircle2, DELETE: AlertCircle, BLOCK: ShieldBan, UNBLOCK: ShieldCheck };
+  const colorMap: Record<string, string> = { CREATE: "10b981", UPDATE: "3b82f6", DELETE: "f43f5e", BLOCK: "f59e0b", UNBLOCK: "8b5cf6" };
+  const activities = apiActivity.length > 0 ? apiActivity.map((a: any) => ({
+    id: a.id, text: a.details || `${a.action} ${a.target}`, time: new Date(a.createdAt).toLocaleString(),
+    icon: iconMap[a.action] || FileText, color: colorMap[a.action] || "3b82f6"
+  })) : [
+    { id: 1, text: "No recent activity", time: "", icon: Activity, color: "3b82f6" },
   ];
 
   return (
@@ -111,7 +135,7 @@ export default function AdminDashboard() {
 
         {/* Tabs Below Header */}
         <div style={{ display: "flex", gap: "1.5rem", overflowX: "auto", paddingTop: "0.5rem", marginTop: "0.5rem", whiteSpace: "nowrap", WebkitOverflowScrolling: "touch", width: "100%", scrollbarWidth: "none" }}>
-          {["overview", "users", "mentors", "content", "settings"].map((tab) => (
+          {["overview", "users", "activity", "content", "settings"].map((tab) => (
             <button 
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -269,7 +293,7 @@ export default function AdminDashboard() {
                   })}
                 </div>
                 
-                <button style={{ width: "100%", marginTop: "2rem", padding: "0.75rem", background: "var(--bg-color)", border: "1px solid var(--card-border)", borderRadius: "12px", color: "var(--text-color)", fontWeight: "600", cursor: "pointer" }}>
+                <button onClick={() => setActiveTab('activity')} style={{ width: "100%", marginTop: "2rem", padding: "0.75rem", background: "var(--bg-color)", border: "1px solid var(--card-border)", borderRadius: "12px", color: "var(--text-color)", fontWeight: "600", cursor: "pointer" }}>
                   View All Logs
                 </button>
               </div>
@@ -311,8 +335,8 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {[...recentUsers, { id: 6, name: "Oliver Scott", email: "oliver@example.com", status: "Active", plan: "Free", joinDate: "1 week ago" }, { id: 7, name: "Sophia Martinez", email: "sophia.m@example.com", status: "Active", plan: "Premium", joinDate: "2 weeks ago" }].map((user) => (
-                  <tr key={user.id} style={{ borderBottom: "1px solid var(--card-border)" }}>
+                {recentUsers.map((user: any) => (
+                  <tr key={user.id} style={{ borderBottom: "1px solid var(--card-border)", opacity: userActionLoading === user.id ? 0.5 : 1 }}>
                     <td style={{ padding: "1rem 0.5rem" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                         <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "var(--bg-color)", border: "1px solid var(--card-border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.9rem", fontWeight: "bold", color: "var(--text-muted)" }}>
@@ -325,18 +349,18 @@ export default function AdminDashboard() {
                       </div>
                     </td>
                     <td style={{ padding: "1rem 0.5rem" }}>
-                      <span style={{ 
-                        background: user.status === 'Active' ? "rgba(16,185,129,0.1)" : user.status === 'Pending' ? "rgba(245,158,11,0.1)" : "rgba(239,68,68,0.1)",
-                        color: user.status === 'Active' ? "#10b981" : user.status === 'Pending' ? "#f59e0b" : "#ef4444",
-                        padding: "0.3rem 0.8rem", borderRadius: "100px", fontSize: "0.8rem", fontWeight: "bold" 
-                      }}>
-                        {user.status}
+                      <span style={{ background: user.status === 'ACTIVE' ? "rgba(16,185,129,0.1)" : "rgba(239,68,68,0.1)", color: user.status === 'ACTIVE' ? "#10b981" : "#ef4444", padding: "0.3rem 0.8rem", borderRadius: "100px", fontSize: "0.8rem", fontWeight: "bold" }}>
+                        {user.status === 'BLOCKED' ? 'Blocked' : 'Active'}
                       </span>
+                      {user.role === 'ADMIN' && <span style={{ marginLeft: '0.5rem', background: 'rgba(244,63,94,0.1)', color: '#f43f5e', padding: '0.2rem 0.5rem', borderRadius: '100px', fontSize: '0.7rem', fontWeight: 'bold' }}>ADMIN</span>}
                     </td>
                     <td style={{ padding: "1rem 0.5rem", fontSize: "0.95rem", fontWeight: "500", color: "var(--text-muted)" }}>{user.plan}</td>
                     <td style={{ padding: "1rem 0.5rem", fontSize: "0.95rem", color: "var(--text-muted)" }}>{user.joinDate}</td>
                     <td style={{ padding: "1rem 0.5rem", textAlign: "right" }}>
-                      <button style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "0.5rem" }}><MoreVertical size={20} /></button>
+                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                        {user.role !== 'ADMIN' && <button onClick={() => handleBlockUser(user.id, user.status)} disabled={!!userActionLoading} title={user.status === 'BLOCKED' ? 'Unblock' : 'Block'} style={{ background: 'none', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '0.4rem', cursor: 'pointer', color: user.status === 'BLOCKED' ? '#10b981' : '#f59e0b', display: 'flex', alignItems: 'center' }}>{user.status === 'BLOCKED' ? <ShieldCheck size={16} /> : <ShieldBan size={16} />}</button>}
+                        {user.role !== 'ADMIN' && <button onClick={() => handleDeleteUser(user.id)} disabled={!!userActionLoading} title='Delete user' style={{ background: 'none', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '0.4rem', cursor: 'pointer', color: '#ef4444', display: 'flex', alignItems: 'center' }}><Trash2 size={16} /></button>}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -346,27 +370,30 @@ export default function AdminDashboard() {
           </motion.div>
         )}
 
-        {activeTab === "mentors" && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-            <h2 style={{ fontSize: "1.5rem", margin: 0 }}>Pending Applications</h2>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "1.5rem" }}>
-              {[1, 2, 3].map((i) => (
-                <div key={i} style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "20px", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                    <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "linear-gradient(135deg, #3b82f6, #8b5cf6)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.2rem", fontWeight: "bold" }}>JD</div>
-                    <div>
-                      <h4 style={{ margin: 0, fontSize: "1.1rem", fontWeight: "600" }}>John Doe {i}</h4>
-                      <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-muted)" }}>Harvard Alumni • STEM</p>
+        {activeTab === "activity" && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "20px", padding: "2rem" }}>
+            <h3 style={{ margin: "0 0 1.5rem 0", fontSize: "1.25rem", fontWeight: "700" }}>Admin Activity Log</h3>
+            {activities.length === 0 ? (
+              <p style={{ color: "var(--text-muted)", textAlign: "center", padding: "2rem 0" }}>No activity recorded yet.</p>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+                {activities.map((act: any, idx: number) => {
+                  const Icon = act.icon;
+                  return (
+                    <div key={act.id} style={{ display: "flex", gap: "1rem", position: "relative" }}>
+                      {idx !== activities.length - 1 && <div style={{ position: "absolute", top: "36px", bottom: "-18px", left: "17px", width: "2px", background: "var(--card-border)", zIndex: 0 }} />}
+                      <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: `rgba(${parseInt(act.color.slice(0,2),16)},${parseInt(act.color.slice(2,4),16)},${parseInt(act.color.slice(4,6),16)},0.1)`, color: `#${act.color}`, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1, border: "2px solid var(--card-bg)", flexShrink: 0 }}>
+                        <Icon size={16} />
+                      </div>
+                      <div>
+                        <p style={{ margin: "0 0 0.25rem 0", fontSize: "0.9rem", color: "var(--text-color)", fontWeight: "500", lineHeight: "1.4" }}>{act.text}</p>
+                        <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--text-muted)" }}>{act.time}</p>
+                      </div>
                     </div>
-                  </div>
-                  <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--text-muted)", lineHeight: "1.5" }}>"I have 5 years of experience helping students secure full scholarships..."</p>
-                  <div style={{ display: "flex", gap: "0.5rem", marginTop: "auto" }}>
-                    <button style={{ flex: 1, padding: "0.5rem", background: "rgba(16,185,129,0.1)", color: "#10b981", border: "1px solid rgba(16,185,129,0.2)", borderRadius: "8px", fontWeight: "600", cursor: "pointer" }}>Approve</button>
-                    <button style={{ flex: 1, padding: "0.5rem", background: "rgba(239,68,68,0.1)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "8px", fontWeight: "600", cursor: "pointer" }}>Reject</button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </motion.div>
         )}
 

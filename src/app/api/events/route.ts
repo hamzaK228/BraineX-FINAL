@@ -21,3 +21,23 @@ export async function POST(req: NextRequest) {
   const event = await prisma.plannerEvent.create({ data: { ...parsed.data, date: new Date(parsed.data.date), userId: session.user.id } });
   return NextResponse.json(event, { status: 201 });
 }
+
+export async function DELETE(req: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
+
+  if (!id) return NextResponse.json({ error: "Missing event id" }, { status: 400 });
+
+  // Ensure the event belongs to the user
+  const event = await prisma.plannerEvent.findFirst({
+    where: { id, userId: session.user.id },
+  });
+
+  if (!event) return NextResponse.json({ error: "Event not found" }, { status: 404 });
+
+  await prisma.plannerEvent.delete({ where: { id } });
+  return NextResponse.json({ success: true });
+}
