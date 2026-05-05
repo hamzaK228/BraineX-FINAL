@@ -176,7 +176,7 @@ export default function UniversitiesPage() {
         title: uni.name,
         type: 'University',
         source: `${uni.city}, ${uni.country}`,
-        image: uni.image
+        image: uni.image ?? undefined
       });
     }
   };
