@@ -58,7 +58,7 @@ export default function RoadmapsPage() {
       .then(data => {
         if (data.items && data.items.length > 0) {
           const dbRoadmaps: Roadmap[] = data.items.map((item: any) => {
-            const parseArray = (val: any) => Array.isArray(val) ? val : (typeof val === 'string' ? val.split(',').map(s => s.trim()) : []);
+            const parseArray = (val: any) => Array.isArray(val) ? val : (typeof val === 'string' ? val.split(',').map((s: string) => s.trim()) : []);
             
             let parsedSteps = [];
             try {

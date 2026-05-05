@@ -48,7 +48,7 @@ export default function ScholarshipsPage() {
         if (data.items && data.items.length > 0) {
           const dbSchols: Scholarship[] = data.items.map((item: any) => {
             // Defensive parsing for arrays
-            const parseArray = (val: any) => Array.isArray(val) ? val : (typeof val === 'string' ? val.split(',').map(s => s.trim()) : []);
+            const parseArray = (val: any) => Array.isArray(val) ? val : (typeof val === 'string' ? val.split(',').map((s: string) => s.trim()) : []);
             
             return {
               id: item.id,

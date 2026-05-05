@@ -39,7 +39,7 @@ export default function FieldsPage() {
       .then(data => {
         if (data.items && data.items.length > 0) {
           const dbFields: Field[] = data.items.map((item: any) => {
-            const parseArray = (val: any) => Array.isArray(val) ? val : (typeof val === 'string' ? val.split(',').map(s => s.trim()) : []);
+            const parseArray = (val: any) => Array.isArray(val) ? val : (typeof val === 'string' ? val.split(',').map((s: string) => s.trim()) : []);
             
             return {
               id: item.id,
