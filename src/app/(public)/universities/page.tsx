@@ -9,8 +9,6 @@ import styles from "./page.module.css";
 import { Search, MapPin, GraduationCap, Users, BookOpen, Sparkles, ArrowRight, Bookmark, Filter, ChevronDown, Check, Globe, Coins, FlaskConical, Monitor } from "lucide-react";
 import { useSaved } from "@/context/SavedContext";
 
-const top50Data = [];
-
 // Types
 type University = {
   id: string;
@@ -29,6 +27,8 @@ type University = {
   special_features?: string[];
   noticable_facts?: string[];
 };
+
+const top50Data: University[] = [];
 
 export default function UniversitiesPage() {
   const [universitiesData, setUniversitiesData] = useState<University[]>(top50Data);
