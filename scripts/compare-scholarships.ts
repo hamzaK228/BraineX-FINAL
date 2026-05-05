@@ -16,7 +16,10 @@ async function main() {
   const content = fs.readFileSync('src/app/(public)/scholarships/page.tsx', 'utf8');
   // Simple regex to find titles
   const matches = content.match(/title: "(.*?)"/g);
-  const fileTitles = matches ? matches.map(m => m.match(/title: "(.*?)"/)[1]) : [];
+  const fileTitles = matches ? matches.map(m => {
+    const innerMatch = m.match(/title: "(.*?)"/);
+    return innerMatch ? innerMatch[1] : "";
+  }).filter(Boolean) : [];
 
   console.log(`DB Count: ${dbTitles.size}`);
   console.log(`File Count: ${fileTitles.length}`);
