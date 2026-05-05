@@ -1,11 +1,12 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { Mail, Lock, ArrowRight, ArrowLeft, Loader2, AlertCircle, AtSign, KeyRound, CheckCircle2 } from "lucide-react";
+import { Mail, Lock, ArrowRight, ArrowLeft, Loader2, AlertCircle, AtSign, CheckCircle2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { signIn } from "next-auth/react";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -17,9 +18,10 @@ function LoginForm() {
 
   // Forgot password state
   const [showForgot, setShowForgot] = useState(false);
-  const [resetNickname, setResetNickname] = useState("");
-  const [resetKey, setResetKey] = useState("");
+  const [resetIdentifier, setResetIdentifier] = useState("");
+  const [identifierVerified, setIdentifierVerified] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
   const [resetError, setResetError] = useState("");
   const [resetSuccess, setResetSuccess] = useState(false);
@@ -80,7 +82,8 @@ function LoginForm() {
     }
   };
 
-  const handleReset = async (e: React.FormEvent) => {
+  // Step 1: Check if identifier exists
+  const handleCheckIdentifier = async (e: React.FormEvent) => {
     e.preventDefault();
     setResetError("");
     setResetLoading(true);
@@ -89,20 +92,58 @@ function LoginForm() {
       const res = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nickname: resetNickname, recoveryKey: resetKey, newPassword }),
+        body: JSON.stringify({ action: "check", identifier: resetIdentifier }),
       });
-      const data = await res.json();
+
       if (!res.ok) {
-        setResetError(data.error || "Reset failed. Check your nickname and key.");
+        const data = await res.json();
+        setResetError(data.error || "No account found with that email or nickname.");
+        setResetLoading(false);
         return;
       }
+
+      setIdentifierVerified(true);
+    } catch {
+      setResetError("Something went wrong. Please try again.");
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  // Step 2: Reset password
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetError("");
+
+    if (newPassword !== confirmPassword) {
+      setResetError("Passwords do not match.");
+      return;
+    }
+
+    setResetLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: resetIdentifier, newPassword }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setResetError(data.error || "Reset failed. Please try again.");
+        setResetLoading(false);
+        return;
+      }
+
       setResetSuccess(true);
       setTimeout(() => {
         setShowForgot(false);
         setResetSuccess(false);
-        setResetNickname("");
-        setResetKey("");
+        setIdentifierVerified(false);
+        setResetIdentifier("");
         setNewPassword("");
+        setConfirmPassword("");
       }, 2500);
     } catch {
       setResetError("Something went wrong. Please try again.");
@@ -111,8 +152,8 @@ function LoginForm() {
     }
   };
 
-  const handleOAuth = (provider: string) => {
-    window.location.href = `/api/auth/signin/${provider}?callbackUrl=/dashboard`;
+  const handleOAuth = async (provider: string) => {
+    await signIn(provider, { redirectTo: "/dashboard" });
   };
 
   const inputStyle = (isLoading: boolean) => ({
@@ -148,7 +189,11 @@ function LoginForm() {
             {showForgot ? "Reset Password" : "Welcome back"}
           </h1>
           <p style={{ color: "var(--text-muted)", margin: 0, fontSize: "0.95rem" }}>
-            {showForgot ? "Enter your nickname and recovery key" : "Enter your credentials to access your dashboard"}
+            {showForgot
+              ? identifierVerified
+                ? "Enter your new password"
+                : "Enter your email or nickname to continue"
+              : "Enter your credentials to access your dashboard"}
           </p>
         </div>
 
@@ -167,40 +212,71 @@ function LoginForm() {
                   <CheckCircle2 size={16} /> Password reset successfully! Redirecting...
                 </div>
               )}
-              <form onSubmit={handleReset} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                  <label style={{ fontSize: "0.85rem", fontWeight: "600", color: "var(--text-color)" }}>Nickname</label>
-                  <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-                    <AtSign size={18} color="var(--text-muted)" style={{ position: "absolute", left: "1rem" }} />
-                    <input type="text" value={resetNickname} onChange={e => setResetNickname(e.target.value)} placeholder="your_nickname" required disabled={resetLoading || resetSuccess} style={inputStyle(resetLoading)}
-                      onFocus={e => e.currentTarget.style.borderColor = "#3b82f6"}
-                      onBlur={e => e.currentTarget.style.borderColor = "var(--card-border)"} />
+
+              {/* Step 1: Identifier Input */}
+              {!identifierVerified && (
+                <form onSubmit={handleCheckIdentifier} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                    <label style={{ fontSize: "0.85rem", fontWeight: "600", color: "var(--text-color)" }}>Email or Nickname</label>
+                    <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                      <AtSign size={18} color="var(--text-muted)" style={{ position: "absolute", left: "1rem" }} />
+                      <input
+                        type="text"
+                        value={resetIdentifier}
+                        onChange={e => setResetIdentifier(e.target.value)}
+                        placeholder="name@example.com or your_nickname"
+                        required
+                        disabled={resetLoading || resetSuccess}
+                        style={inputStyle(resetLoading)}
+                        onFocus={e => e.currentTarget.style.borderColor = "#3b82f6"}
+                        onBlur={e => e.currentTarget.style.borderColor = "var(--card-border)"}
+                      />
+                    </div>
                   </div>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                  <label style={{ fontSize: "0.85rem", fontWeight: "600", color: "var(--text-color)" }}>Recovery Key Word</label>
-                  <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-                    <KeyRound size={18} color="var(--text-muted)" style={{ position: "absolute", left: "1rem" }} />
-                    <input type="password" value={resetKey} onChange={e => setResetKey(e.target.value)} placeholder="your secret keyword" required disabled={resetLoading || resetSuccess} style={inputStyle(resetLoading)}
-                      onFocus={e => e.currentTarget.style.borderColor = "#3b82f6"}
-                      onBlur={e => e.currentTarget.style.borderColor = "var(--card-border)"} />
-                  </div>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                  <label style={{ fontSize: "0.85rem", fontWeight: "600", color: "var(--text-color)" }}>New Password</label>
-                  <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-                    <Lock size={18} color="var(--text-muted)" style={{ position: "absolute", left: "1rem" }} />
-                    <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="New password (min 6 chars)" required minLength={6} disabled={resetLoading || resetSuccess} style={inputStyle(resetLoading)}
-                      onFocus={e => e.currentTarget.style.borderColor = "#3b82f6"}
-                      onBlur={e => e.currentTarget.style.borderColor = "var(--card-border)"} />
-                  </div>
-                </div>
-                <button type="submit" disabled={resetLoading || resetSuccess} style={{ marginTop: "0.5rem", width: "100%", padding: "0.875rem", borderRadius: "12px", background: resetLoading ? "rgba(59,130,246,0.5)" : "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)", color: "white", border: "none", fontSize: "1rem", fontWeight: "600", cursor: resetLoading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", transition: "opacity 0.2s" }} onMouseOver={e => { if (!resetLoading) e.currentTarget.style.opacity = "0.9"; }} onMouseOut={e => e.currentTarget.style.opacity = "1"}>
-                  {resetLoading ? <><Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} /> Resetting...</> : <>Reset Password <ArrowRight size={18} /></>}
-                </button>
-              </form>
+                  <button type="submit" disabled={resetLoading || resetSuccess || !resetIdentifier.trim()} style={{ marginTop: "0.5rem", width: "100%", padding: "0.875rem", borderRadius: "12px", background: resetLoading ? "rgba(59,130,246,0.5)" : "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)", color: "white", border: "none", fontSize: "1rem", fontWeight: "600", cursor: resetLoading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", transition: "opacity 0.2s" }} onMouseOver={e => { if (!resetLoading) e.currentTarget.style.opacity = "0.9"; }} onMouseOut={e => e.currentTarget.style.opacity = "1"}>
+                    {resetLoading ? <><Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} /> Checking...</> : <>Continue <ArrowRight size={18} /></>}
+                  </button>
+                </form>
+              )}
+
+              {/* Step 2: New Password (animated slide-in) */}
+              <AnimatePresence>
+                {identifierVerified && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <form onSubmit={handleResetPassword} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                        <label style={{ fontSize: "0.85rem", fontWeight: "600", color: "var(--text-color)" }}>New Password</label>
+                        <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                          <Lock size={18} color="var(--text-muted)" style={{ position: "absolute", left: "1rem" }} />
+                          <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="New password (min 6 chars)" required minLength={6} disabled={resetLoading || resetSuccess} style={inputStyle(resetLoading)}
+                            onFocus={e => e.currentTarget.style.borderColor = "#3b82f6"}
+                            onBlur={e => e.currentTarget.style.borderColor = "var(--card-border)"} />
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                        <label style={{ fontSize: "0.85rem", fontWeight: "600", color: "var(--text-color)" }}>Confirm Password</label>
+                        <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                          <Lock size={18} color="var(--text-muted)" style={{ position: "absolute", left: "1rem" }} />
+                          <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirm new password" required minLength={6} disabled={resetLoading || resetSuccess} style={inputStyle(resetLoading)}
+                            onFocus={e => e.currentTarget.style.borderColor = "#3b82f6"}
+                            onBlur={e => e.currentTarget.style.borderColor = "var(--card-border)"} />
+                        </div>
+                      </div>
+                      <button type="submit" disabled={resetLoading || resetSuccess} style={{ marginTop: "0.5rem", width: "100%", padding: "0.875rem", borderRadius: "12px", background: resetLoading ? "rgba(59,130,246,0.5)" : "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)", color: "white", border: "none", fontSize: "1rem", fontWeight: "600", cursor: resetLoading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", transition: "opacity 0.2s" }} onMouseOver={e => { if (!resetLoading) e.currentTarget.style.opacity = "0.9"; }} onMouseOut={e => e.currentTarget.style.opacity = "1"}>
+                        {resetLoading ? <><Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} /> Resetting...</> : <>Reset Password <ArrowRight size={18} /></>}
+                      </button>
+                    </form>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
-                <button onClick={() => { setShowForgot(false); setResetError(""); setResetSuccess(false); }} style={{ background: "none", border: "none", color: "#3b82f6", fontWeight: "600", cursor: "pointer", fontSize: "0.9rem" }}>
+                <button onClick={() => { setShowForgot(false); setResetError(""); setResetSuccess(false); setIdentifierVerified(false); }} style={{ background: "none", border: "none", color: "#3b82f6", fontWeight: "600", cursor: "pointer", fontSize: "0.9rem" }}>
                   ← Back to Sign In
                 </button>
               </div>
@@ -289,7 +365,7 @@ function LoginForm() {
         </div>
 
         <p style={{ textAlign: "center", marginTop: "2rem", color: "var(--text-muted)", fontSize: "0.9rem" }}>
-          Don&apos;t have an account? <Link href="/signup" style={{ color: "#3b82f6", fontWeight: "600", textDecoration: "none" }}>Sign up</Link>
+          Don't have an account? <Link href="/signup" style={{ color: "#3b82f6", fontWeight: "600", textDecoration: "none" }}>Sign up</Link>
         </p>
       </motion.div>
 

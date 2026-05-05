@@ -22,7 +22,6 @@ model User {
   tier          String    @default("Free")
   status        String    @default("ACTIVE") // ACTIVE | BLOCKED
   nickname      String?   @unique
-  recoveryKeyHash String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

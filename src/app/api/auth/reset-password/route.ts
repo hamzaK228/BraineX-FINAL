@@ -3,17 +3,58 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
+// Step 1: Check if identifier (email or nickname) exists
+const checkSchema = z.object({
+  identifier: z.string().min(1, "Email or nickname is required"),
+});
+
+// Step 2: Reset password with new password
 const resetSchema = z.object({
-  nickname: z.string().min(1, "Nickname is required"),
-  recoveryKey: z.string().min(1, "Recovery key is required"),
+  identifier: z.string().min(1, "Email or nickname is required"),
   newPassword: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const parsed = resetSchema.safeParse(body);
+    const { action } = body;
 
+    // ─── CHECK: Verify identifier exists ────────────────────────────────
+    if (action === "check") {
+      const parsed = checkSchema.safeParse(body);
+      if (!parsed.success) {
+        return NextResponse.json(
+          { error: (parsed.error as any).errors[0].message },
+          { status: 400 }
+        );
+      }
+
+      const { identifier } = parsed.data;
+
+      // Look up user by email OR nickname
+      const user = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { email: identifier },
+            { nickname: identifier },
+          ],
+        },
+        select: { id: true },
+      });
+
+      // Generic response to prevent enumeration attacks
+      if (!user) {
+        return NextResponse.json(
+          { error: "No account found with that email or nickname." },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json({ exists: true });
+    }
+
+    // ─── RESET: Update password ─────────────────────────────────────────
+    const parsed = resetSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
         { error: (parsed.error as any).errors[0].message },
@@ -21,28 +62,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { nickname, recoveryKey, newPassword } = parsed.data;
+    const { identifier, newPassword } = parsed.data;
 
-    // Look up user by nickname (don't reveal whether nickname exists)
-    const user = await prisma.user.findUnique({
-      where: { nickname },
-      select: { id: true, recoveryKeyHash: true },
+    // Look up user by email OR nickname
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: identifier },
+          { nickname: identifier },
+        ],
+      },
+      select: { id: true },
     });
 
-    if (!user || !user.recoveryKeyHash) {
-      // Generic error message to prevent nickname enumeration
+    if (!user) {
       return NextResponse.json(
-        { error: "Invalid nickname or recovery key." },
-        { status: 400 }
-      );
-    }
-
-    // Verify recovery key
-    const isKeyValid = await bcrypt.compare(recoveryKey, user.recoveryKeyHash);
-    if (!isKeyValid) {
-      return NextResponse.json(
-        { error: "Invalid nickname or recovery key." },
-        { status: 400 }
+        { error: "No account found with that email or nickname." },
+        { status: 404 }
       );
     }
 

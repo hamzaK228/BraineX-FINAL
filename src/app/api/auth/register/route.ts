@@ -4,11 +4,10 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 
 const registerSchema = z.object({
-  name: z.string().min(1),
-  email: z.string().email(),
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email format"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   nickname: z.string().min(2, "Nickname must be at least 2 characters").optional(),
-  recoveryKey: z.string().min(4, "Recovery key must be at least 4 characters").optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -23,7 +22,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { name, email, password, nickname, recoveryKey } = parsed.data;
+    const { name, email, password, nickname } = parsed.data;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
@@ -46,19 +45,12 @@ export async function POST(req: NextRequest) {
 
     const passwordHash = await bcrypt.hash(password, 12);
 
-    // Hash recovery key if provided
-    let recoveryKeyHash: string | undefined;
-    if (recoveryKey) {
-      recoveryKeyHash = await bcrypt.hash(recoveryKey, 12);
-    }
-
     const user = await prisma.user.create({
       data: {
         name,
         email,
         passwordHash,
         nickname: nickname || undefined,
-        recoveryKeyHash: recoveryKeyHash || undefined,
       },
       select: { id: true, name: true, email: true },
     });
