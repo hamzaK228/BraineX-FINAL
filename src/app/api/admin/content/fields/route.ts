@@ -5,10 +5,17 @@ import { logAdminActivity } from "@/lib/admin-log";
 import { z } from "zod";
 
 const schema = z.object({
-  title: z.string().min(1), category: z.string().min(1), icon: z.string().optional(),
-  description: z.string().optional(), salary: z.string().optional(), growth: z.string().optional(),
-  demand: z.string().optional(), topUnis: z.string().optional(), tags: z.array(z.string()).optional(),
-  image: z.string().optional(), isPublished: z.boolean().optional(),
+  title: z.string().min(1), 
+  category: z.string().min(1), 
+  icon: z.string().optional(),
+  description: z.string().optional(), 
+  salary: z.union([z.string(), z.number()]).transform(v => String(v)).optional(),
+  growth: z.union([z.string(), z.number()]).transform(v => String(v)).optional(),
+  demand: z.union([z.string(), z.number()]).transform(v => String(v)).optional(),
+  topUnis: z.union([z.string(), z.number()]).transform(v => String(v)).optional(),
+  tags: z.array(z.string()).optional(),
+  image: z.string().optional(), 
+  isPublished: z.boolean().optional(),
 });
 
 export async function GET(req: NextRequest) {

@@ -24,7 +24,7 @@ export default function ScholarshipsPage() {
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
-          setScholarships(data.map((s: any) => ({ id: s.id, title: s.name, provider: s.provider || "", amount: s.amount || "Variable", deadline: s.deadline ? new Date(s.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "TBA", status: s.status || "saved", link: s.link || "" })));
+          setScholarships(data.map((s: any) => ({ id: s.id, title: s.title, provider: s.provider || "", amount: s.amount || "Variable", deadline: s.deadline ? new Date(s.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "TBA", status: s.status || "saved", link: s.link || "" })));
         }
       }
     } catch { /* fallback */ }
@@ -66,7 +66,7 @@ export default function ScholarshipsPage() {
       await fetch("/api/scholarships", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newScholarship.title, provider: newScholarship.provider, amount: newScholarship.amount, deadline: newScholarship.deadline || null, status: newScholarship.status, link: newScholarship.link }),
+        body: JSON.stringify({ title: newScholarship.title, provider: newScholarship.provider, amount: newScholarship.amount, deadline: newScholarship.deadline || null, status: newScholarship.status, link: newScholarship.link }),
       });
     } catch { /* silent */ }
   };

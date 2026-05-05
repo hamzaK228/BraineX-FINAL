@@ -1,19 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireAdmin } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
-
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user?.id) return null;
-  const adminId = session.user.id;
-  const user = await prisma.user.findUnique({
-    where: { id: adminId },
-    select: { role: true, name: true },
-  });
-  if (user?.role !== "ADMIN") return null;
-  return { adminId, adminName: user.name };
-}
 
 const updateSchema = z.object({
   role: z.enum(["STUDENT", "MENTOR", "ADMIN"]).optional(),
@@ -26,10 +14,12 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const adminSession = await requireAdmin();
-  if (!adminSession)
+  const session = await requireAdmin();
+  if (!session)
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
+  const adminId = session.user!.id!;
+  const adminName = session.user!.name || "Admin";
   const { id } = await params;
   const body = await req.json();
   const parsed = updateSchema.safeParse(body);
@@ -37,11 +27,11 @@ export async function PATCH(
     return NextResponse.json({ error: (parsed.error as any).errors[0].message }, { status: 400 });
 
   // Prevent demoting yourself
-  if (id === adminSession.adminId && parsed.data.role && parsed.data.role !== "ADMIN")
+  if (id === adminId && parsed.data.role && parsed.data.role !== "ADMIN")
     return NextResponse.json({ error: "Cannot change your own admin role" }, { status: 400 });
 
   // Prevent blocking yourself
-  if (id === adminSession.adminId && parsed.data.status === "BLOCKED")
+  if (id === adminId && parsed.data.status === "BLOCKED")
     return NextResponse.json({ error: "Cannot block yourself" }, { status: 400 });
 
   const user = await prisma.user.update({
@@ -54,8 +44,8 @@ export async function PATCH(
   if (parsed.data.status) {
     await prisma.adminActivity.create({
       data: {
-        adminId: adminSession.adminId,
-        adminName: adminSession.adminName || "Admin",
+        adminId,
+        adminName,
         action: parsed.data.status === "BLOCKED" ? "BLOCK" : "UNBLOCK",
         target: "user",
         targetId: id,
@@ -67,8 +57,8 @@ export async function PATCH(
   if (parsed.data.role) {
     await prisma.adminActivity.create({
       data: {
-        adminId: adminSession.adminId,
-        adminName: adminSession.adminName || "Admin",
+        adminId,
+        adminName,
         action: "UPDATE",
         target: "user",
         targetId: id,
@@ -85,13 +75,15 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const adminSession = await requireAdmin();
-  if (!adminSession)
+  const session = await requireAdmin();
+  if (!session)
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
+  const adminId = session.user!.id!;
+  const adminName = session.user!.name || "Admin";
   const { id } = await params;
 
-  if (id === adminSession.adminId)
+  if (id === adminId)
     return NextResponse.json({ error: "Cannot delete yourself" }, { status: 400 });
 
   const user = await prisma.user.findUnique({ where: { id }, select: { email: true } });
@@ -101,8 +93,8 @@ export async function DELETE(
   // Log activity
   await prisma.adminActivity.create({
     data: {
-      adminId: adminSession.adminId,
-      adminName: adminSession.adminName || "Admin",
+      adminId,
+      adminName,
       action: "DELETE",
       target: "user",
       targetId: id,

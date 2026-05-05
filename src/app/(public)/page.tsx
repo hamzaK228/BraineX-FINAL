@@ -20,7 +20,7 @@ import {
   Briefcase
 } from "lucide-react";
 import styles from "./page.module.css";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 
 const fadeIn = {
   hidden: { opacity: 0, y: 30 },
@@ -55,6 +55,64 @@ export default function Home() {
       scrollRef.current.scrollBy({ left: 380, behavior: "smooth" });
     }
   };
+
+  const [featuredScholarships, setFeaturedScholarships] = useState<any[]>([]);
+  const [featuredRoadmaps, setFeaturedRoadmaps] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [scholarshipsRes, roadmapsRes] = await Promise.all([
+          fetch('/api/public/content/scholarships'),
+          fetch('/api/public/content/roadmaps')
+        ]);
+
+        const scholarshipsData = await scholarshipsRes.json();
+        const roadmapsData = await roadmapsRes.json();
+
+        const scholarships = Array.isArray(scholarshipsData) ? scholarshipsData : (scholarshipsData.items || []);
+        const roadmaps = Array.isArray(roadmapsData) ? roadmapsData : (roadmapsData.items || []);
+
+        setFeaturedScholarships(scholarships.filter((s: any) => s.featured).slice(0, 3));
+        setFeaturedRoadmaps(roadmaps.filter((r: any) => r.featured).slice(0, 3));
+      } catch (error) {
+        console.error("Error fetching featured content:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Fallbacks if DB is empty or fetch fails
+  const displayScholarships = featuredScholarships.length > 0 ? featuredScholarships : [
+    { title: "Gates Cambridge Scholarship", provider: "University of Cambridge", fields: ["All Fields"], deadline: "Dec 15, 2024", degreeLevel: ["Graduate"], description: "Prestigious scholarship for outstanding applicants outside the UK to pursue graduate study." },
+    { title: "NSF Graduate Research Fellowship", provider: "National Science Foundation", fields: ["STEM Fields"], deadline: "Oct 25, 2024", degreeLevel: ["Graduate"], description: "Support for graduate research in science, technology, engineering, and mathematics." },
+    { title: "Rhodes Scholarship", provider: "University of Oxford", fields: ["All Fields"], deadline: "Oct 6, 2024", degreeLevel: ["Graduate"], description: "The world's oldest graduate scholarship program, enabling exceptional young people to study at Oxford." }
+  ];
+
+  const displayRoadmaps = featuredRoadmaps.length > 0 ? featuredRoadmaps : [
+    { 
+      title: "High School to College", 
+      icon: <Map size={28} />,
+      color: "#3b82f6",
+      steps: [{ title: "GPA", description: "Maintain strong GPA (3.5+)" }, { title: "Courses", description: "Take AP/IB/Honors courses" }, { title: "Leadership", description: "Build leadership experience" }, { title: "Testing", description: "Start SAT/ACT prep" }, { title: "Essays", description: "Write compelling essays" }]
+    },
+    { 
+      title: "Undergrad to Grad School", 
+      icon: <GraduationCap size={28} />,
+      color: "#a855f7",
+      steps: [{ title: "Research", description: "Research faculty & programs" }, { title: "Experience", description: "Gain research experience" }, { title: "Testing", description: "Prep for GRE/GMAT" }, { title: "References", description: "Secure recommendation letters" }, { title: "Funding", description: "Apply for fellowships" }]
+    },
+    { 
+      title: "Career Transition", 
+      icon: <Briefcase size={28} />,
+      color: "#10b981",
+      steps: [{ title: "Audit", description: "Self-assessment & skills audit" }, { title: "Certification", description: "Acquire new certifications" }, { title: "Portfolio", description: "Build portfolio projects" }, { title: "Networking", description: "Network with professionals" }, { title: "Offers", description: "Negotiate offers" }]
+    }
+  ];
 
   return (
     <>
@@ -334,22 +392,18 @@ export default function Home() {
               initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}
               className={styles.grid3}
             >
-              {[
-                { title: "Gates Cambridge Scholarship", uni: "University of Cambridge", field: "All Fields", deadline: "Dec 15, 2024", level: "Graduate", desc: "Prestigious scholarship for outstanding applicants outside the UK to pursue graduate study." },
-                { title: "NSF Graduate Research Fellowship", uni: "National Science Foundation", field: "STEM Fields", deadline: "Oct 25, 2024", level: "Graduate", desc: "Support for graduate research in science, technology, engineering, and mathematics." },
-                { title: "Rhodes Scholarship", uni: "University of Oxford", field: "All Fields", deadline: "Oct 6, 2024", level: "Graduate", desc: "The world's oldest graduate scholarship program, enabling exceptional young people to study at Oxford." }
-              ].map((item, i) => (
+              {displayScholarships.map((item, i) => (
                 <motion.div key={i} variants={fadeIn} className={`glass-card ${styles.trackCard}`}>
                   <div className={styles.trackHeader} style={{ marginBottom: "1rem" }}>
                     <h3 style={{ fontSize: "1.25rem", fontWeight: "bold" }}>{item.title}</h3>
                     <div className={styles.trackIcon}><Award size={28} /></div>
                   </div>
                   <div style={{ marginBottom: "1rem" }}>
-                    <div className={styles.metaInfo}><GraduationCap size={16} /> <span>{item.uni}</span></div>
-                    <div className={styles.metaInfo}><BookOpen size={16} /> <span>{item.field}</span></div>
+                    <div className={styles.metaInfo}><GraduationCap size={16} /> <span>{item.provider || item.university}</span></div>
+                    <div className={styles.metaInfo}><BookOpen size={16} /> <span>{Array.isArray(item.fields) ? item.fields[0] : (item.field || "All Fields")}</span></div>
                     <div className={styles.metaInfo}><Clock size={16} /> <span>{item.deadline}</span></div>
                   </div>
-                  <p style={{ color: "var(--text-muted)", marginBottom: "1.5rem", minHeight: "4rem", fontSize: "0.95rem" }}>{item.desc}</p>
+                  <p style={{ color: "var(--text-muted)", marginBottom: "1.5rem", minHeight: "4rem", fontSize: "0.95rem" }}>{item.description || item.desc}</p>
                   <Link href="/scholarships" className="ds-btn ds-btn-secondary" style={{ width: "100%", textAlign: "center", display: "block" }}>
                     View Details
                   </Link>
@@ -423,44 +477,32 @@ export default function Home() {
               initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}
               className={styles.grid3}
             >
-              {[
-                { 
-                  title: "High School to College", 
-                  icon: <Map size={28} />,
-                  color: "#3b82f6",
-                  steps: ["Maintain strong GPA (3.5+)", "Take AP/IB/Honors courses", "Build leadership experience", "Start SAT/ACT prep", "Write compelling essays"]
-                },
-                { 
-                  title: "Undergrad to Grad School", 
-                  icon: <GraduationCap size={28} />,
-                  color: "#a855f7",
-                  steps: ["Research faculty & programs", "Gain research experience", "Prep for GRE/GMAT", "Secure recommendation letters", "Apply for fellowships"]
-                },
-                { 
-                  title: "Career Transition", 
-                  icon: <Briefcase size={28} />,
-                  color: "#10b981",
-                  steps: ["Self-assessment & skills audit", "Acquire new certifications", "Build portfolio projects", "Network with professionals", "Negotiate offers"]
-                }
-              ].map((roadmap, i) => (
+              {displayRoadmaps.map((roadmap, i) => (
                 <motion.div key={i} variants={fadeIn} className="glass-card" style={{ padding: "2.5rem", position: "relative", overflow: "hidden" }}>
                   <div style={{ position: "absolute", top: "-20px", right: "-20px", opacity: 0.05, transform: "scale(3)" }}>
-                    {roadmap.icon}
+                    {roadmap.icon || <Map size={28} />}
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "2rem" }}>
-                    <div style={{ padding: "1rem", background: `rgba(${roadmap.color === '#3b82f6' ? '59,130,246' : roadmap.color === '#a855f7' ? '168,85,247' : '16,185,129'}, 0.1)`, color: roadmap.color, borderRadius: "12px" }}>
-                      {roadmap.icon}
+                    <div style={{ 
+                      padding: "1rem", 
+                      background: roadmap.color ? `${roadmap.color}15` : "rgba(59,130,246,0.1)", 
+                      color: roadmap.color || "#3b82f6", 
+                      borderRadius: "12px" 
+                    }}>
+                      {roadmap.icon || <Map size={28} />}
                     </div>
                     <h3 style={{ fontSize: "1.3rem", fontWeight: "bold", margin: 0, lineHeight: "1.3" }}>{roadmap.title}</h3>
                   </div>
                   
                   <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "1.2rem" }}>
-                    {roadmap.steps.map((step, j) => (
+                    {Array.isArray(roadmap.steps) && roadmap.steps.slice(0, 5).map((step: any, j: number) => (
                       <li key={j} style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
                         <div style={{ background: "var(--card-border)", color: "var(--text-color)", width: "24px", height: "24px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.8rem", fontWeight: "bold", flexShrink: 0 }}>
                           {j + 1}
                         </div>
-                        <span style={{ fontSize: "0.95rem", color: "var(--text-muted)", lineHeight: "1.4" }}>{step}</span>
+                        <span style={{ fontSize: "0.95rem", color: "var(--text-muted)", lineHeight: "1.4" }}>
+                          {typeof step === 'string' ? step : (step.title || step.description)}
+                        </span>
                       </li>
                     ))}
                   </ul>

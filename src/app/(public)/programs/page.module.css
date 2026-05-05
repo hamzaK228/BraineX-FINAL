@@ -45,6 +45,64 @@
   transition: all 0.2s;
 }
 
+.searchBtn:hover {
+  background: #4f46e5;
+  transform: translateY(-1px);
+}
+
+/* Stats Row */
+.statsRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.25rem;
+  margin-top: 3rem;
+  margin-bottom: 3rem;
+  width: 100%;
+}
+
+.statCard {
+  background: linear-gradient(145deg, var(--card-bg), rgba(255, 255, 255, 0.05));
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border);
+  border-radius: 24px;
+  padding: 1.5rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.2);
+  flex: 1 1 280px;
+  max-width: 350px;
+}
+
+.statCard:hover {
+  background: var(--card-bg);
+  border-color: rgba(99, 102, 241, 0.4);
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.4);
+}
+
+.statValue {
+  font-size: clamp(1.8rem, 4vw, 2.2rem);
+  font-weight: 800;
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1.1;
+}
+
+.statLabel {
+  font-size: clamp(0.75rem, 1.5vw, 0.85rem);
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
 /* Horizontal Filter Bar */
 .filterBar {
   background: var(--card-bg);
@@ -173,27 +231,45 @@
 /* Card Grid */
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 2.5rem;
 }
 
 .card {
-  background: var(--card-bg);
+  background: linear-gradient(145deg, var(--card-bg), rgba(255, 255, 255, 0.05));
   border: 1px solid var(--card-border);
-  border-radius: 24px;
-  padding: 1.75rem;
+  border-radius: 32px;
+  padding: 2.25rem;
   display: flex;
   flex-direction: column;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.2);
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, #6366f1, transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
 }
 
 .card:hover {
-  transform: translateY(-8px);
+  transform: translateY(-12px);
   border-color: rgba(99, 102, 241, 0.4);
   background: var(--card-bg);
-  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, var(--shadow-opacity));
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.5);
+}
+
+.card:hover::before {
+  opacity: 1;
 }
 
 .cardHeader {

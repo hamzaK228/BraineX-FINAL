@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, Circle, ArrowRight, Plus, Building, GraduationCap, ListTodo, FileText, BookOpen, Clock, Calendar, CalendarDays, TrendingUp, User, Map, Target, Lightbulb } from "lucide-react";
+import { CheckCircle2, Circle, ArrowRight, Plus, Building, GraduationCap, ListTodo, FileText, BookOpen, Clock, CalendarDays, TrendingUp, User, Map, Target, Lightbulb } from "lucide-react";
 import Link from "next/link";
 
 export default function DashboardPage() {
@@ -51,6 +51,13 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => { fetchDashboard(); }, [fetchDashboard]);
+
+  // Re-fetch dashboard data when items are saved/unsaved (custom event dispatched by SavedContext)
+  useEffect(() => {
+    const handleRefresh = () => fetchDashboard();
+    window.addEventListener('dashboardRefresh', handleRefresh);
+    return () => window.removeEventListener('dashboardRefresh', handleRefresh);
+  }, [fetchDashboard]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -314,7 +321,7 @@ export default function DashboardPage() {
           </div>
           
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem" }}>
-            {weekSchedule.length > 0 ? weekSchedule.filter(d => d.day !== 'Sat' && d.day !== 'Sun').map((d: any, i: number) => (
+            {weekSchedule.length > 0 ? weekSchedule.map((d: any, i: number) => (
               <div key={i} style={{ 
                 background: d.isToday ? "rgba(99,102,241,0.05)" : "var(--bg-color)", 
                 border: d.isToday ? "2px solid #6366f1" : "1px solid var(--card-border)", 
@@ -332,11 +339,10 @@ export default function DashboardPage() {
                   {d.events.length === 0 ? (
                     <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", textAlign: "center", marginTop: "auto", marginBottom: "auto" }}>Free Day</div>
                   ) : d.events.map((e: any, j: number) => {
-                    // map types to colors
-                    let color = '#3b82f6'; // event (blue)
-                    if (e.type === 'deadline') color = '#f43f5e'; // red
-                    if (e.type === 'meeting') color = '#a855f7'; // purple
-                    if (e.type === 'task') color = '#10b981'; // green
+                    let color = '#3b82f6';
+                    if (e.type === 'deadline') color = '#f43f5e';
+                    if (e.type === 'meeting') color = '#a855f7';
+                    if (e.type === 'task') color = '#10b981';
                     return (
                       <div key={j} style={{ background: `rgba(${color === '#3b82f6' ? '59,130,246' : color === '#a855f7' ? '168,85,247' : color === '#10b981' ? '16,185,129' : color === '#f43f5e' ? '244,63,94' : '245,158,11'}, 0.1)`, borderLeft: `3px solid ${color}`, padding: "0.5rem", borderRadius: "0 6px 6px 0", fontSize: "0.8rem", fontWeight: "600", color: "var(--text-color)" }}>
                         {e.title}
@@ -369,20 +375,26 @@ export default function DashboardPage() {
             {/* Minimal Calendar View */}
             <div style={{ background: "var(--bg-color)", borderRadius: "16px", padding: "1.5rem", border: "1px solid var(--card-border)", marginBottom: "1.5rem" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginBottom: "1rem" }}>
-                <h4 style={{ margin: 0, fontSize: "1.1rem" }}>October 2024</h4>
+                <h4 style={{ margin: 0, fontSize: "1.1rem" }}>
+                  {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                </h4>
                 <div style={{ display: "flex", gap: "0.5rem" }}>
-                  <button style={{ background: "var(--card-border)", border: "none", borderRadius: "50%", width: "24px", height: "24px", cursor: "pointer", color: "var(--text-color)" }}>&lt;</button>
-                  <button style={{ background: "var(--card-border)", border: "none", borderRadius: "50%", width: "24px", height: "24px", cursor: "pointer", color: "var(--text-color)" }}>&gt;</button>
+                  <button style={{ background: "var(--card-border)", border: "none", borderRadius: "50%", width: "24px", height: "24px", cursor: "pointer", color: "var(--text-color)" }}>{'<'}</button>
+                  <button style={{ background: "var(--card-border)", border: "none", borderRadius: "50%", width: "24px", height: "24px", cursor: "pointer", color: "var(--text-color)" }}>{'>'}</button>
                 </div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "0.5rem", textAlign: "center", fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "0.5rem" }}>
                 <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "0.5rem", textAlign: "center", fontSize: "0.95rem" }}>
-                {Array.from({ length: 31 }).map((_, i) => {
+                {Array.from({ length: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() }).map((_, i) => {
                   const day = i + 1;
-                  const isEvent = day === 12 || day === 15 || day === 25;
-                  const isToday = day === 14;
+                  const today = new Date();
+                  const isToday = day === today.getDate() && today.getMonth() === new Date().getMonth() && today.getFullYear() === new Date().getFullYear();
+                  const hasDeadline = upcomingDeadlines.some(d => {
+                    const dd = new Date(d.date);
+                    return dd.getDate() === day && dd.getMonth() === today.getMonth() && dd.getFullYear() === today.getFullYear();
+                  });
                   return (
                     <div key={i} style={{ 
                       aspectRatio: "1/1", 
@@ -390,9 +402,9 @@ export default function DashboardPage() {
                       alignItems: "center", 
                       justifyContent: "center", 
                       borderRadius: "50%",
-                      background: isToday ? "#6366f1" : isEvent ? "rgba(244,63,94,0.1)" : "transparent",
-                      color: isToday ? "#fff" : isEvent ? "#f43f5e" : "var(--text-color)",
-                      fontWeight: isToday || isEvent ? "bold" : "normal",
+                      background: isToday ? "#6366f1" : hasDeadline ? "rgba(244,63,94,0.1)" : "transparent",
+                      color: isToday ? "#fff" : hasDeadline ? "#f43f5e" : "var(--text-color)",
+                      fontWeight: isToday || hasDeadline ? "bold" : "normal",
                       cursor: "pointer"
                     }}>
                       {day}
@@ -403,23 +415,16 @@ export default function DashboardPage() {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {[].length > 0 ? (
-                <>
-                  <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+              {upcomingDeadlines.length > 0 ? (
+                upcomingDeadlines.slice(0, 5).map((d: any) => (
+                  <div key={d.id} style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
                     <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#f43f5e" }}></div>
                     <div>
-                      <div style={{ fontSize: "0.95rem", fontWeight: "600" }}>Oct 15 - Early Action Deadline</div>
-                      <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Don't forget to submit SAT scores</div>
+                      <div style={{ fontSize: "0.95rem", fontWeight: "600" }}>{new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {d.title}</div>
+                      <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>{d.course || "General"}</div>
                     </div>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                    <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#f59e0b" }}></div>
-                    <div>
-                      <div style={{ fontSize: "0.95rem", fontWeight: "600" }}>Oct 25 - NSF Fellowship</div>
-                      <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Final review with mentor</div>
-                    </div>
-                  </div>
-                </>
+                ))
               ) : (
                 <div style={{ textAlign: "center", padding: "1rem", color: "var(--text-muted)", fontSize: "0.9rem" }}>
                   No important dates found.
@@ -445,8 +450,8 @@ export default function DashboardPage() {
             </div>
             
             <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-              {/* Profile Strength - Only show if there's actually some profile data (e.g., more than just a name) */}
-              {[].length > 0 && (
+              {/* Profile Strength - Only show if there's actually some profile data */}
+              {savedUniversities.length > 0 && (
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
                   <div style={{ fontWeight: "600", display: "flex", alignItems: "center", gap: "0.5rem" }}><User size={18} color="#f59e0b" /> Profile Strength</div>
@@ -459,8 +464,8 @@ export default function DashboardPage() {
               </div>
               )}
 
-              {/* Progress Bar 1 - Only show if there's progress */}
-              {[].length > 0 && (
+              {/* Progress Bar 1 - University Applications */}
+              {savedUniversities.length > 0 && (
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
                   <div style={{ fontWeight: "600", display: "flex", alignItems: "center", gap: "0.5rem" }}><GraduationCap size={18} color="#a855f7" /> University Applications</div>
@@ -473,21 +478,21 @@ export default function DashboardPage() {
               </div>
               )}
 
-              {/* Progress Bar 2 - Only show if there's progress */}
-              {[].length > 0 && (
+              {/* Progress Bar 2 - Active Roadmaps */}
+              {roadmaps.length > 0 && (
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
                   <div style={{ fontWeight: "600", display: "flex", alignItems: "center", gap: "0.5rem" }}><Map size={18} color="#10b981" /> Active Roadmaps</div>
-                  <span style={{ fontWeight: "bold", color: "#10b981" }}>65%</span>
+                  <span style={{ fontWeight: "bold", color: "#10b981" }}>{roadmaps[0]?.progress || 65}%</span>
                 </div>
                 <div style={{ height: "10px", background: "rgba(16,185,129,0.15)", borderRadius: "5px", overflow: "hidden" }}>
-                  <div style={{ height: "100%", width: "65%", background: "#10b981", borderRadius: "5px" }}></div>
+                  <div style={{ height: "100%", width: `${roadmaps[0]?.progress || 65}%`, background: "#10b981", borderRadius: "5px" }}></div>
                 </div>
-                <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.85rem", color: "var(--text-muted)" }}>Data Structures module almost complete</p>
+                <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.85rem", color: "var(--text-muted)" }}>{roadmaps[0]?.title || "Roadmap"} module in progress</p>
               </div>
               )}
 
-              {[].length === 0 && (
+              {roadmaps.length === 0 && savedUniversities.length === 0 && (
                 <div style={{ textAlign: "center", padding: "3rem", color: "var(--text-muted)", border: "1px dashed var(--card-border)", borderRadius: "16px" }}>
                   <TrendingUp size={32} color="var(--card-border)" style={{ marginBottom: "1rem" }} />
                   <p>Start your first roadmap or application to see progress here.</p>
@@ -552,23 +557,16 @@ export default function DashboardPage() {
               <Link href="/resources" style={{ color: "#6366f1", fontSize: "0.95rem", fontWeight: "600", textDecoration: "none" }}>Browse All</Link>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {[].length > 0 ? (
-                <>
-                  <Link href="#" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1rem", background: "var(--bg-color)", borderRadius: "12px", border: "1px solid var(--card-border)", textDecoration: "none", color: "var(--text-color)", transition: "transform 0.2s" }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
+              {resources.length > 0 ? (
+                resources.slice(0, 3).map((r: any) => (
+                  <Link key={r.id} href={r.link || "#"} style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1rem", background: "var(--bg-color)", borderRadius: "12px", border: "1px solid var(--card-border)", textDecoration: "none", color: "var(--text-color)", transition: "transform 0.2s" }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
                     <div style={{ padding: "0.6rem", background: "rgba(168,85,247,0.1)", color: "#a855f7", borderRadius: "8px" }}><FileText size={20} /></div>
                     <div style={{ flex: 1 }}>
-                      <h4 style={{ margin: 0, fontSize: "1rem" }}>Ultimate Essay Guide</h4>
-                      <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--text-muted)" }}>PDF Document • 2.4 MB</p>
+                      <h4 style={{ margin: 0, fontSize: "1rem" }}>{r.title}</h4>
+                      <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--text-muted)" }}>{r.type || "Resource"}</p>
                     </div>
                   </Link>
-                  <Link href="#" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1rem", background: "var(--bg-color)", borderRadius: "12px", border: "1px solid var(--card-border)", textDecoration: "none", color: "var(--text-color)", transition: "transform 0.2s" }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
-                    <div style={{ padding: "0.6rem", background: "rgba(59,130,246,0.1)", color: "#3b82f6", borderRadius: "8px" }}><BookOpen size={20} /></div>
-                    <div style={{ flex: 1 }}>
-                      <h4 style={{ margin: 0, fontSize: "1rem" }}>Interview Prep Course</h4>
-                      <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--text-muted)" }}>Video Series • 45 mins</p>
-                    </div>
-                  </Link>
-                </>
+                ))
               ) : (
                 <div style={{ textAlign: "center", padding: "2rem", color: "var(--text-muted)", border: "1px dashed var(--card-border)", borderRadius: "12px" }}>
                   <BookOpen size={32} color="var(--card-border)" style={{ marginBottom: "1rem" }} />
@@ -596,27 +594,26 @@ export default function DashboardPage() {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-              {[].length > 0 ? (
-                <>
-                  {/* Roadmap Item 1 */}
-                  <div style={{ background: "var(--bg-color)", border: "1px solid var(--card-border)", borderRadius: "16px", padding: "1.5rem" }}>
+              {roadmaps.length > 0 ? (
+                roadmaps.slice(0, 3).map((r: any) => (
+                  <div key={r.id} style={{ background: "var(--bg-color)", border: "1px solid var(--card-border)", borderRadius: "16px", padding: "1.5rem" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
                       <div>
-                        <h4 style={{ margin: "0 0 0.25rem 0", fontSize: "1.15rem" }}>Data Structures & Algorithms</h4>
-                        <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-muted)" }}>Module 4: Trees & Graphs</p>
+                        <h4 style={{ margin: "0 0 0.25rem 0", fontSize: "1.15rem" }}>{r.title}</h4>
+                        <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-muted)" }}>{r.description || `${r.completedSteps || 0} of ${r.totalSteps || 0} steps completed`}</p>
                       </div>
                       <span style={{ background: "rgba(16,185,129,0.1)", color: "#10b981", padding: "0.4rem 0.8rem", borderRadius: "100px", fontSize: "0.85rem", fontWeight: "bold" }}>
-                        65% Done
+                        {r.progress || 0}% Done
                       </span>
                     </div>
                     <div style={{ height: "8px", background: "rgba(16,185,129,0.15)", borderRadius: "4px", overflow: "hidden", marginBottom: "1.25rem" }}>
-                      <div style={{ height: "100%", width: "65%", background: "#10b981", borderRadius: "4px" }} />
+                      <div style={{ height: "100%", width: `${r.progress || 0}%`, background: "#10b981", borderRadius: "4px" }} />
                     </div>
-                    <button className="ds-btn ds-btn-primary" style={{ width: "100%", padding: "0.75rem", borderRadius: "12px", background: "var(--card-border)", color: "var(--text-color)", border: "none", fontWeight: "600", cursor: "pointer", transition: "background 0.2s" }} onMouseOver={(e) => e.currentTarget.style.background = 'rgba(99,102,241,0.1)'} onMouseOut={(e) => e.currentTarget.style.background = 'var(--card-border)'}>
+                    <Link href={`/dashboard/roadmaps/${r.id}`} className="ds-btn ds-btn-primary" style={{ width: "100%", padding: "0.75rem", borderRadius: "12px", background: "var(--card-border)", color: "var(--text-color)", border: "none", fontWeight: "600", cursor: "pointer", transition: "background 0.2s", display: "block", textAlign: "center", textDecoration: "none" }} onMouseOver={(e) => e.currentTarget.style.background = 'rgba(99,102,241,0.1)'} onMouseOut={(e) => e.currentTarget.style.background = 'var(--card-border)'}>
                       Continue Learning
-                    </button>
+                    </Link>
                   </div>
-                </>
+                ))
               ) : (
                 <div style={{ textAlign: "center", padding: "3rem", color: "var(--text-muted)", border: "1px dashed var(--card-border)", borderRadius: "16px" }}>
                   <Map size={32} color="var(--card-border)" style={{ marginBottom: "1rem" }} />
@@ -636,9 +633,9 @@ export default function DashboardPage() {
                 <span style={{ fontSize: "1.5rem" }}>📈</span>
                 <h3 style={{ margin: 0, fontSize: "1.4rem", fontWeight: "700" }}>Activity Tracker</h3>
               </div>
-              {[].length > 0 && (
+              {tasks.length > 0 && (
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "rgba(236,72,153,0.1)", color: "#ec4899", padding: "0.4rem 0.8rem", borderRadius: "8px", fontWeight: "bold", fontSize: "0.9rem" }}>
-                  🔥 5 Day Streak
+                  🔥 {Math.min(tasks.filter((t: any) => t.done).length, 5)} Day Streak
                 </div>
               )}
             </div>
@@ -686,13 +683,13 @@ export default function DashboardPage() {
             <div>
               <h4 style={{ margin: "0 0 1rem 0", fontSize: "1.1rem", color: "var(--text-muted)" }}>Recent Actions</h4>
               <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "1rem" }}>
-                {[].length > 0 ? [
-                  <li key="1" style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                    <div style={{ width: 8, height: 8, background: "#10b981", borderRadius: "50%" }}></div>
-                    <span style={{ fontSize: "0.95rem" }}>Completed <strong>Arrays & Strings</strong> quiz.</span>
-                    <span style={{ marginLeft: "auto", fontSize: "0.8rem", color: "var(--text-muted)" }}>2h ago</span>
+                {tasks.length > 0 ? tasks.slice(0, 3).map((t: any, idx: number) => (
+                  <li key={idx} style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                    <div style={{ width: 8, height: 8, background: t.done ? "#10b981" : "#f59e0b", borderRadius: "50%" }}></div>
+                    <span style={{ fontSize: "0.95rem" }}>{t.done ? "Completed" : "Working on"} <strong>{t.text}</strong></span>
+                    <span style={{ marginLeft: "auto", fontSize: "0.8rem", color: "var(--text-muted)" }}>{t.priority || "General"}</span>
                   </li>
-                ] : (
+                )) : (
                   <li style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>No recent activity.</li>
                 )}
               </ul>

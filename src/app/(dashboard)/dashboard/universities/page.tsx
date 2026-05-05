@@ -75,7 +75,7 @@ export default function UniversitiesPage() {
       await fetch("/api/universities", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newUni.name, location: newUni.location, ranking: newUni.rank, matchScore: parseInt(newUni.match) || null }),
+        body: JSON.stringify({ name: newUni.name, location: newUni.location, status: newUni.rank ? `Rank: ${newUni.rank}` : undefined, link: "" }),
       });
     } catch { /* silent */ }
   };

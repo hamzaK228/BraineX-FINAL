@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, Search, Filter, FileText, Download, Link as LinkIcon, Video, ArrowRight, Plus, X, Trash2 } from "lucide-react";
 
@@ -15,36 +15,65 @@ export default function ResourcesPage() {
     visible: { opacity: 1, y: 0 }
   };
 
-  const [resources, setResources] = useState([
-    { id: 1, title: "Ultimate SAT Math Guide", desc: "A comprehensive 100-page formula sheet and strategy guide.", type: "PDF", tag: "Standardized Testing" },
-    { id: 2, title: "How to Ask for Rec Letters", desc: "Templates and email examples to send to professors.", type: "Link", tag: "Applications" },
-    { id: 3, title: "Personal Statement Workshop", desc: "1-hour video breakdown of successful Harvard essays.", type: "Video", tag: "Essays" },
-    { id: 4, title: "FAFSA Step-by-Step Tutorial", desc: "Detailed breakdown of filling out financial aid documents.", type: "PDF", tag: "Finance" },
-    { id: 5, title: "Extracurriculars Database", desc: "Spreadsheet of 500+ impressive high school activities.", type: "File", tag: "Profile Building" },
-    { id: 6, title: "College Interview Prep", desc: "Most commonly asked interview questions and how to answer them.", type: "Link", tag: "Applications" },
-  ]);
+  const [resources, setResources] = useState<any[]>([]);
+
+  const fetchResources = useCallback(async () => {
+    try {
+      const res = await fetch("/api/resources");
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setResources(data.map((r: any) => ({
+            id: r.id,
+            title: r.title,
+            desc: "No description provided.",
+            type: r.type || "Link",
+            tag: (r.tags && r.tags.length > 0) ? r.tags[0] : "General",
+            link: r.link || ""
+          })));
+        }
+      }
+    } catch { /* fallback */ }
+  }, []);
+
+  useEffect(() => { fetchResources(); }, [fetchResources]);
 
   const [isAdding, setIsAdding] = useState(false);
-  const [newResource, setNewResource] = useState({ title: "", desc: "", type: "Link", tag: "General" });
+  const [newResource, setNewResource] = useState({ title: "", desc: "", type: "Link", tag: "General", link: "" });
 
-  const handleAddResource = (e: React.FormEvent) => {
+  const handleAddResource = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newResource.title.trim()) return;
 
+    const tempId = Date.now();
     setResources([{
-      id: Date.now(),
+      id: tempId,
       title: newResource.title,
       desc: newResource.desc || "No description provided.",
       type: newResource.type,
-      tag: newResource.tag
+      tag: newResource.tag,
+      link: newResource.link
     }, ...resources]);
     
-    setNewResource({ title: "", desc: "", type: "Link", tag: "General" });
+    setNewResource({ title: "", desc: "", type: "Link", tag: "General", link: "" });
     setIsAdding(false);
+
+    try {
+      const res = await fetch("/api/resources", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: newResource.title, type: newResource.type, link: newResource.link || "#", tags: newResource.tag ? [newResource.tag] : [] }),
+      });
+      if (res.ok) {
+        const saved = await res.json();
+        setResources(prev => prev.map(r => r.id === tempId ? { ...r, id: saved.id } : r));
+      }
+    } catch { /* silent */ }
   };
 
-  const deleteResource = (id: number) => {
+  const deleteResource = async (id: number | string) => {
     setResources(resources.filter(res => res.id !== id));
+    try { await fetch(`/api/resources/${id}`, { method: "DELETE" }); } catch { /* silent */ }
   };
 
   const getResourceIcon = (type: string) => {

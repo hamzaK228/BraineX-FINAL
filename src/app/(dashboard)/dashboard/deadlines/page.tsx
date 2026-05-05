@@ -24,13 +24,13 @@ export default function DeadlinesPage() {
         const data = await res.json();
         if (Array.isArray(data)) {
           setDeadlines(data.map((d: any) => {
-            const targetDate = new Date(d.dueDate);
+            const targetDate = new Date(d.date);
             const today = new Date();
             const diffDays = Math.ceil(Math.abs(targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
             let color = "#10b981", status = "future";
             if (diffDays < 20) { color = "#f43f5e"; status = "urgent"; }
             else if (diffDays < 60) { color = "#f59e0b"; status = "upcoming"; }
-            return { id: d.id, title: d.title, type: d.type || "Other", date: targetDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }), daysLeft: diffDays, color, status };
+            return { id: d.id, title: d.title, type: d.course || "Other", date: targetDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }), daysLeft: diffDays, color, status };
           }));
         }
       }
@@ -74,7 +74,7 @@ export default function DeadlinesPage() {
       await fetch("/api/deadlines", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: newDeadline.title, type: newDeadline.type || "Other", dueDate: newDeadline.date }),
+        body: JSON.stringify({ title: newDeadline.title, course: newDeadline.type || "Other", date: newDeadline.date }),
       });
     } catch { /* silent */ }
   };

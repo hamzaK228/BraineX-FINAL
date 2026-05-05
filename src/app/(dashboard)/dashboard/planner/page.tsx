@@ -112,10 +112,10 @@ export default function PlannerPage() {
         if (Array.isArray(data)) {
           const map: any = {};
           data.forEach((ev: any) => {
-            const d = new Date(ev.startDate);
+            const d = new Date(ev.date);
             const dateStr = d.toDateString();
             if (!map[dateStr]) map[dateStr] = [];
-            map[dateStr].push({ id: ev.id, title: ev.title, time: ev.startTime || "All Day", color: ev.color || "#6366f1" });
+            map[dateStr].push({ id: ev.id, title: ev.title, time: ev.time || "All Day", color: ev.type || "#6366f1" });
           });
           setEventsMap(map);
         }
@@ -153,7 +153,7 @@ export default function PlannerPage() {
       await fetch("/api/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: newEvent.title, startDate: newEvent.date, startTime: newEvent.time || "All Day", color: newEvent.color }),
+        body: JSON.stringify({ title: newEvent.title, date: newEvent.date, time: newEvent.time || "All Day", type: newEvent.color }),
       });
     } catch { /* silent */ }
   };

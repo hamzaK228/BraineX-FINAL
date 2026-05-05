@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { StickyNote, Plus, X, Trash2, Calendar, FileText } from "lucide-react";
+import { StickyNote, Plus, X, Trash2, Calendar } from "lucide-react";
 
 export default function NotesPage() {
   const containerVariants = {

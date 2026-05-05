@@ -43,8 +43,8 @@ export default function AboutPage() {
         {/* Mission & Vision */}
         <section style={{ padding: "4rem 0" }}>
           <div className="container">
-            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className={styles.missionGrid}>
-              <motion.div variants={fadeIn} className={`glass-card ${styles.missionCard}`}>
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }} variants={stagger} className={styles.missionGrid}>
+              <motion.div variants={fadeIn} whileHover={{ y: -10, scale: 1.02 }} className={`${styles.missionCard}`}>
                 <div className={styles.missionIcon}>🎯</div>
                 <h3 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>Our Mission</h3>
                 <p style={{ color: "var(--text-muted)" }}>
@@ -53,7 +53,7 @@ export default function AboutPage() {
                 </p>
               </motion.div>
 
-              <motion.div variants={fadeIn} className={`glass-card ${styles.missionCard}`}>
+              <motion.div variants={fadeIn} whileHover={{ y: -10, scale: 1.02 }} className={`${styles.missionCard}`}>
                 <div className={styles.missionIcon}>🔮</div>
                 <h3 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>Our Vision</h3>
                 <p style={{ color: "var(--text-muted)" }}>
@@ -62,7 +62,7 @@ export default function AboutPage() {
                 </p>
               </motion.div>
 
-              <motion.div variants={fadeIn} className={`glass-card ${styles.missionCard}`}>
+              <motion.div variants={fadeIn} whileHover={{ y: -10, scale: 1.02 }} className={`${styles.missionCard}`}>
                 <div className={styles.missionIcon}>⚖️</div>
                 <h3 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>Our Values</h3>
                 <p style={{ color: "var(--text-muted)" }}>
@@ -84,22 +84,31 @@ export default function AboutPage() {
             >
               👥 Meet Our Team
             </motion.h2>
-            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className={styles.teamGrid}>
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} variants={stagger} className={styles.teamGrid}>
               {[
-                { initials: "AK", name: "Alex Kumar", title: "Founder & CEO", edu: "Harvard MBA, Stanford CS", bio: "Former Google engineer passionate about democratizing education access. Started BraineX after receiving mentorship that changed his life." },
-                { initials: "SR", name: "Sarah Rodriguez", title: "Head of Education", edu: "MIT PhD Education", bio: "Education researcher with 10+ years experience designing learning platforms. Expert in personalized learning and student success." },
-                { initials: "MJ", name: "Michael Johnson", title: "CTO", edu: "Stanford MS CS", bio: "Tech leader with experience at Facebook and Uber. Builds scalable platforms that connect millions of students worldwide." },
-                { initials: "PW", name: "Priya Williams", title: "Head of Partnerships", edu: "Oxford MBA", bio: "Partnership strategist who has built relationships with 500+ universities and organizations to expand opportunities for students." }
+                { name: "Sofia Erkinbekova", title: "CEO & Founder", bio: "Leading BraineX with a vision to revolutionize the educational landscape through technology and accessibility.", image: "/team/sofia.jpg" },
+                { name: "Hamza Kozubaev", title: "CTO (Tech Lead)", bio: "Architecting the future of BraineX with cutting-edge tech and a passion for scalable systems.", image: "/team/hamza.jpg" },
+                { name: "Shirin Turdubaeva", title: "CTO Assistant", bio: "Bridging the gap between strategy and execution, ensuring technical excellence across the platform.", image: "/team/shirin.jpg" },
+                { name: "Rufina Erkinbekova", title: "Visual Designer", bio: "Crafting the premium, intuitive visual language that defines the BraineX user experience.", image: "/team/rufina.jpg" },
+                { name: "Chyngyz Sultanbekov", title: "PR Manager & Coordinator", bio: "Building the BraineX brand and coordinating outreach to connect with students globally.", image: "/team/chyngyz.jpg" },
+                { name: "Bermet Begalieva", title: "Coordinator & Mentor", bio: "Providing expert guidance and coordination to ensure every student finds their path to success.", image: "/team/bermet.jpg" },
+                { name: "Binazir Zhumanazarova", title: "Content Creator", bio: "Developing engaging educational content that inspires and informs the BraineX community.", image: "/team/binazir.jpg" },
+                { name: "Ademi Usupbaeva", title: "Coordinator & Mentor", bio: "Supporting student growth through personalized mentorship and efficient program coordination.", image: "/team/ademi.jpg" }
               ].map((member, i) => (
-                <motion.div key={i} variants={fadeIn} className={`glass-card ${styles.teamMember}`}>
-                  <div className={styles.memberAvatar}>{member.initials}</div>
+                <motion.div key={i} variants={fadeIn} whileHover={{ y: -10, scale: 1.02 }} className={`${styles.teamMember}`}>
+                  <div className={styles.memberAvatar}>
+                    {member.image ? (
+                      <img src={member.image} alt={member.name} className={styles.avatarImg} onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                    ) : (
+                      member.name.split(' ').map(n => n[0]).join('')
+                    )}
+                  </div>
                   <h3 style={{ fontSize: "1.25rem", marginBottom: "0.25rem" }}>{member.name}</h3>
                   <p className={styles.memberTitle}>{member.title}</p>
-                  <p className={styles.memberEducation}>{member.edu}</p>
-                  <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", flexGrow: 1 }}>{member.bio}</p>
+                  <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", flexGrow: 1, marginTop: "1rem" }}>{member.bio}</p>
                   <div className={styles.memberSocial}>
-                    <Link href="https://linkedin.com/company/brainex" target="_blank">LinkedIn</Link>
-                    <Link href="https://twitter.com/brainex" target="_blank">Twitter</Link>
+                    <Link href="#" target="_blank">LinkedIn</Link>
+                    <Link href="#" target="_blank">Portfolio</Link>
                   </div>
                 </motion.div>
               ))}
@@ -107,103 +116,7 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Company Timeline */}
-        <section style={{ padding: "4rem 0" }}>
-          <div className="container">
-            <motion.h2 
-              initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeIn}
-              className="section-title text-center"
-            >
-              📈 Our Journey
-            </motion.h2>
-            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className={styles.timeline}>
-              {[
-                { year: "2020", title: "The Beginning", desc: "Founded with a mission to help students find scholarships and mentorship opportunities." },
-                { year: "2021", title: "Platform Launch", desc: "Launched beta platform with 50 mentors and 500 scholarship opportunities." },
-                { year: "2022", title: "Global Expansion", desc: "Expanded to 50 countries with partnerships at 100+ universities." },
-                { year: "2023", title: "AI Integration", desc: "Introduced AI-powered matching and personalized roadmaps." },
-                { year: "2024", title: "Major Milestone", desc: "Reached 50,000 active students and $50M+ in scholarships facilitated." },
-                { year: "2025", title: "Future Vision", desc: "Launching advanced features and expanding to 200+ countries." }
-              ].map((item, i) => (
-                <motion.div key={i} variants={fadeIn} className={styles.timelineItem}>
-                  <div className={styles.timelineMarker}>{item.year}</div>
-                  <div className={`glass-card ${styles.timelineContent}`} style={{ padding: "1.5rem" }}>
-                    <h3>{item.title}</h3>
-                    <p>{item.desc}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </section>
 
-        {/* Contact Section */}
-        <section style={{ padding: "4rem 0" }}>
-          <div className="container">
-            <motion.div 
-              initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeIn}
-              className={`glass-card ${styles.contactGrid}`} style={{ padding: "3rem" }}
-            >
-              <div>
-                <h2 style={{ fontSize: "2rem", marginBottom: "1rem" }}>📞 Get in Touch</h2>
-                <p style={{ color: "var(--text-muted)", marginBottom: "2rem" }}>
-                  We'd love to hear from you. Send us a message and we'll respond as soon as possible.
-                </p>
-                <div className={styles.contactItem}>
-                  <div className={styles.contactIcon}>📧</div>
-                  <div>
-                    <h4>Email</h4>
-                    <p>hello@edugateway.com</p>
-                  </div>
-                </div>
-                <div className={styles.contactItem}>
-                  <div className={styles.contactIcon}>📱</div>
-                  <div>
-                    <h4>Phone</h4>
-                    <p>+1 (555) 123-4567</p>
-                  </div>
-                </div>
-                <div className={styles.contactItem}>
-                  <div className={styles.contactIcon}>📍</div>
-                  <div>
-                    <h4>Address</h4>
-                    <p>123 Innovation Drive<br />San Francisco, CA 94105</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div>
-                <form onSubmit={(e) => e.preventDefault()}>
-                  <div className={styles.formRow}>
-                    <div className={styles.formGroup}>
-                      <label>First Name</label>
-                      <input type="text" placeholder="First Name" required />
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label>Last Name</label>
-                      <input type="text" placeholder="Last Name" required />
-                    </div>
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label>Email Address</label>
-                    <input type="email" placeholder="Email Address" required />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label>Subject</label>
-                    <input type="text" placeholder="Subject" required />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label>Your Message</label>
-                    <textarea placeholder="Your Message" rows={5} required></textarea>
-                  </div>
-                  <button type="submit" className="ds-btn ds-btn-primary" style={{ width: "100%" }}>
-                    Send Message
-                  </button>
-                </form>
-              </div>
-            </motion.div>
-          </div>
-        </section>
 
         {/* CTA Section */}
         <section style={{ padding: "4rem 0" }}>

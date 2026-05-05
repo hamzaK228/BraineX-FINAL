@@ -6,7 +6,7 @@ export type SavedItem = {
   id: string | number;
   itemId?: string;
   title: string;
-  type: 'University' | 'Program' | 'Scholarship' | 'Project' | 'Roadmap' | 'Mentor';
+  type: 'University' | 'Program' | 'Scholarship' | 'Project' | 'Roadmap' | 'Mentor' | 'Field';
   source: string;
   image?: string;
 };
@@ -105,6 +105,11 @@ export const SavedProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         // Keep optimistic update, will sync later
       }
     }
+
+    // Notify dashboard to refresh
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('dashboardRefresh'));
+    }
   }, [savedItems, isAuthenticated]);
 
   const removeItem = useCallback(async (id: string | number) => {
@@ -119,6 +124,11 @@ export const SavedProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       } catch {
         // Silently fail — item already removed from UI
       }
+    }
+
+    // Notify dashboard to refresh
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('dashboardRefresh'));
     }
   }, [savedItems, isAuthenticated]);
 

@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed:dashboard": "tsx scripts/seed-dashboard.ts",
+    "seed:content": "tsx scripts/seed-content.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.2",
@@ -28,6 +30,7 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "ws": "^8.20.0",
+    "xlsx": "^0.18.5",
     "zod": "^4.3.6"
   },
   "devDependencies": {

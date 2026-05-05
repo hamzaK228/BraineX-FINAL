@@ -1,41 +1,89 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Send, Paperclip, MoreVertical, Phone, Video, Info, User, Check, CheckCheck } from "lucide-react";
+import { Search, Send, Paperclip, Phone, Video, Info, CheckCheck } from "lucide-react";
 
 export default function MessagesPage() {
-  const [activeChat, setActiveChat] = useState(1);
+  const [activeChat, setActiveChat] = useState<string | null>(null);
   const [message, setMessage] = useState("");
 
-  const mentors = [
-    { id: 1, name: "Dr. Sarah Jenkins", role: "Ivy League Admissions", avatar: "SJ", online: true, unread: 2, lastMessage: "Your essay draft looks much better now!" },
-    { id: 2, name: "Michael Chen", role: "STEM Scholarships", avatar: "MC", online: false, unread: 0, lastMessage: "Let's schedule a mock interview for Friday." },
-    { id: 3, name: "Elena Rodriguez", role: "Financial Aid Expert", avatar: "ER", online: true, unread: 0, lastMessage: "The FAFSA deadline is approaching soon." },
-  ];
+  const [chatRooms, setChatRooms] = useState<any[]>([]);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [messages, setMessages] = useState([
-    { id: 1, sender: "mentor", text: "Hi there! I reviewed your latest personal statement draft.", time: "10:30 AM" },
-    { id: 2, sender: "mentor", text: "You've made great progress on the intro, but the conclusion needs more impact.", time: "10:31 AM" },
-    { id: 3, sender: "user", text: "Thanks Sarah! I struggled a bit with tying it all together at the end. Any specific suggestions?", time: "10:45 AM" },
-    { id: 4, sender: "mentor", text: "Try referencing your opening hook again. I've left some comments on the Google Doc.", time: "10:48 AM" },
-    { id: 5, sender: "mentor", text: "Your essay draft looks much better now!", time: "11:15 AM" },
-  ]);
+  // Fetch chat rooms
+  const fetchChatRooms = useCallback(async () => {
+    try {
+      const res = await fetch("/api/chat");
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setChatRooms(data.map((r: any) => ({
+            id: r.id,
+            name: r.name || "Chat Room",
+            lastMessage: r.lastMessage || "No messages yet",
+            unread: r.unreadCount || 0,
+            online: true,
+            avatar: r.name?.split(" ").map((n: string) => n[0]).join("").slice(0, 2) || "CH",
+          })));
+          if (data.length > 0 && !activeChat) {
+            setActiveChat(data[0].id);
+          }
+        }
+      }
+    } catch { /* fallback */ }
+    setLoading(false);
+  }, [activeChat]);
 
-  const handleSend = (e: React.FormEvent) => {
+  useEffect(() => { fetchChatRooms(); }, [fetchChatRooms]);
+
+  // Fetch messages for active chat
+  const fetchMessages = useCallback(async () => {
+    if (!activeChat) return;
+    try {
+      const res = await fetch(`/api/chat/${activeChat}/messages`);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setMessages(data.map((m: any) => ({
+            id: m.id,
+            sender: m.senderId === "me" ? "user" : "mentor",
+            text: m.content,
+            time: new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          })));
+        }
+      }
+    } catch { /* fallback */ }
+  }, [activeChat]);
+
+  useEffect(() => { fetchMessages(); }, [fetchMessages]);
+
+  const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim()) return;
+    if (!message.trim() || !activeChat) return;
     
-    setMessages([...messages, { 
-      id: Date.now(), 
-      sender: "user", 
+    const tempId = Date.now();
+    const newMsg = { 
+      id: tempId, 
+      sender: "user" as const, 
       text: message, 
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }]);
+    };
+    
+    setMessages(prev => [...prev, newMsg]);
     setMessage("");
+
+    try {
+      await fetch(`/api/chat/${activeChat}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: message }),
+      });
+    } catch { /* silent */ }
   };
 
-  const activeMentor = mentors.find(m => m.id === activeChat);
+  const activeRoom = chatRooms.find(r => r.id === activeChat);
 
   return (
     <div className="messages-layout" style={{ height: "calc(100vh - 120px)", background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "24px", overflow: "hidden", boxShadow: "0 20px 40px rgba(0,0,0,0.05)" }}>
@@ -55,10 +103,10 @@ export default function MessagesPage() {
         </div>
 
         <div style={{ flex: 1, overflowY: "auto", padding: "1rem" }}>
-          {mentors.map(mentor => (
+          {chatRooms.map(room => (
             <div 
-              key={mentor.id}
-              onClick={() => setActiveChat(mentor.id)}
+              key={room.id}
+              onClick={() => setActiveChat(room.id)}
               style={{ 
                 display: "flex", 
                 alignItems: "center", 
@@ -66,30 +114,30 @@ export default function MessagesPage() {
                 padding: "1rem", 
                 borderRadius: "16px", 
                 cursor: "pointer", 
-                background: activeChat === mentor.id ? "rgba(59,130,246,0.1)" : "transparent",
-                border: activeChat === mentor.id ? "1px solid rgba(59,130,246,0.2)" : "1px solid transparent",
+                background: activeChat === room.id ? "rgba(59,130,246,0.1)" : "transparent",
+                border: activeChat === room.id ? "1px solid rgba(59,130,246,0.2)" : "1px solid transparent",
                 marginBottom: "0.5rem",
                 transition: "all 0.2s"
               }}
             >
               <div style={{ position: "relative" }}>
                 <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "linear-gradient(135deg, #3b82f6, #8b5cf6)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.2rem", fontWeight: "bold" }}>
-                  {mentor.avatar}
+                  {room.avatar}
                 </div>
-                {mentor.online && <div style={{ position: "absolute", bottom: "2px", right: "2px", width: "12px", height: "12px", background: "#10b981", borderRadius: "50%", border: "2px solid var(--bg-color)" }} />}
+                {room.online && <div style={{ position: "absolute", bottom: "2px", right: "2px", width: "12px", height: "12px", background: "#10b981", borderRadius: "50%", border: "2px solid var(--bg-color)" }} />}
               </div>
               
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "0.25rem" }}>
-                  <h4 style={{ margin: 0, fontSize: "1rem", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{mentor.name}</h4>
-                  <span style={{ fontSize: "0.75rem", color: activeChat === mentor.id ? "#3b82f6" : "var(--text-muted)" }}>11:15 AM</span>
+                  <h4 style={{ margin: 0, fontSize: "1rem", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{room.name}</h4>
+                  <span style={{ fontSize: "0.75rem", color: activeChat === room.id ? "#3b82f6" : "var(--text-muted)" }}>11:15 AM</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <p style={{ margin: 0, fontSize: "0.85rem", color: activeChat === mentor.id ? "var(--text-color)" : "var(--text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: mentor.unread ? "600" : "normal" }}>
-                    {mentor.lastMessage}
+                  <p style={{ margin: 0, fontSize: "0.85rem", color: activeChat === room.id ? "var(--text-color)" : "var(--text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: room.unread ? "600" : "normal" }}>
+                    {room.lastMessage}
                   </p>
-                  {mentor.unread > 0 && (
-                    <span style={{ background: "#f43f5e", color: "white", fontSize: "0.7rem", fontWeight: "bold", padding: "0.1rem 0.4rem", borderRadius: "100px", marginLeft: "0.5rem" }}>{mentor.unread}</span>
+                  {room.unread > 0 && (
+                    <span style={{ background: "#f43f5e", color: "white", fontSize: "0.7rem", fontWeight: "bold", padding: "0.1rem 0.4rem", borderRadius: "100px", marginLeft: "0.5rem" }}>{room.unread}</span>
                   )}
                 </div>
               </div>
@@ -102,17 +150,17 @@ export default function MessagesPage() {
       <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "var(--card-bg)" }}>
         
         {/* Chat Header */}
-        {activeMentor && (
+        {activeRoom && (
           <div style={{ padding: "1.25rem 2rem", borderBottom: "1px solid var(--card-border)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(255,255,255,0.02)", backdropFilter: "blur(10px)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
               <div style={{ width: "44px", height: "44px", borderRadius: "50%", background: "linear-gradient(135deg, #3b82f6, #8b5cf6)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.1rem", fontWeight: "bold" }}>
-                {activeMentor.avatar}
+                {activeRoom.avatar}
               </div>
               <div>
-                <h3 style={{ margin: "0 0 0.2rem 0", fontSize: "1.1rem", fontWeight: "700" }}>{activeMentor.name}</h3>
+                <h3 style={{ margin: "0 0 0.2rem 0", fontSize: "1.1rem", fontWeight: "700" }}>{activeRoom.name}</h3>
                 <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                  <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: activeMentor.online ? "#10b981" : "var(--text-muted)" }} />
-                  {activeMentor.online ? "Online" : "Offline"} • {activeMentor.role}
+                  <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: activeRoom.online ? "#10b981" : "var(--text-muted)" }} />
+                  {activeRoom.online ? "Online" : "Offline"}
                 </p>
               </div>
             </div>
@@ -144,7 +192,7 @@ export default function MessagesPage() {
                   <div style={{ display: "flex", alignItems: "flex-end", gap: "0.5rem", flexDirection: isMe ? "row-reverse" : "row" }}>
                     {!isMe && (
                       <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "linear-gradient(135deg, #3b82f6, #8b5cf6)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.7rem", fontWeight: "bold" }}>
-                        {activeMentor?.avatar}
+                        {activeRoom?.avatar}
                       </div>
                     )}
                     <div style={{ 

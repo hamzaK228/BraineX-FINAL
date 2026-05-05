@@ -1,17 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireAdmin } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
-
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user?.id) return null;
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { role: true },
-  });
-  if (user?.role !== "ADMIN") return null;
-  return session;
-}
 
 // GET /api/admin/users — List all users with pagination
 export async function GET(req: NextRequest) {
