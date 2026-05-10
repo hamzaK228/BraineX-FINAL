@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { PublicHeader } from "@/components/PublicHeader";
 import { InfoModal } from "@/components/InfoModal";
 import styles from "./page.module.css";
-import { Search, MapPin, Award, ChevronDown, Filter, Globe, GraduationCap, Coins, FlaskConical, UserCheck, Monitor, Bookmark, ExternalLink } from "lucide-react";
+import { Search, MapPin, Award, ChevronDown, Filter, Globe, GraduationCap, Coins, FlaskConical, UserCheck, Monitor, Bookmark, ExternalLink, ArrowRight } from "lucide-react";
 import { useSaved } from "@/context/SavedContext";
 import { GoogleSearcherIndicator } from "@/components/GoogleSearcherIndicator";
 
@@ -379,6 +379,9 @@ export default function ScholarshipsPage() {
                   >
                     <Search size={20} /> Deep Search with Google
                   </button>
+                </motion.div>
+              )}
+
               {isSearchingWeb && (
                 <GoogleSearcherIndicator query={search} onCancel={() => setIsSearchingWeb(false)} />
               )}

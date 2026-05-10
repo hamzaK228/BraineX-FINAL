@@ -414,6 +414,10 @@ export default function UniversitiesPage() {
                     }}
                   >
                     <Search size={20} /> Deep Search with Google
+                  </button>
+                </motion.div>
+              )}
+
               {isSearchingWeb && (
                 <GoogleSearcherIndicator query={search} onCancel={() => setIsSearchingWeb(false)} />
               )}
