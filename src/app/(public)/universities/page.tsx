@@ -34,7 +34,6 @@ const top50Data: University[] = [];
 export default function UniversitiesPage() {
   const [universitiesData, setUniversitiesData] = useState<University[]>(top50Data);
   const [loading, setLoading] = useState(true);
-  const [selectedUni, setSelectedUni] = useState<University | null>(null);
   const { saveItem, removeItem, isSaved } = useSaved();
 
   // Filters state
@@ -205,28 +204,6 @@ export default function UniversitiesPage() {
   return (
     <>
       <PublicHeader />
-      {selectedUni && (
-        <InfoModal 
-          isOpen={!!selectedUni} 
-          onClose={() => setSelectedUni(null)} 
-          title={selectedUni.name} 
-          subtitle={`${selectedUni.city}, ${selectedUni.country}`} 
-          icon="🏛️"
-          image={selectedUni.image || "https://images.unsplash.com/photo-1541339907198-e08756ebafe3?q=80&w=1200&auto=format&fit=crop"}
-          description={selectedUni.description}
-          specialFeatures={selectedUni.special_features}
-          stats={[
-            { label: "Acceptance", value: selectedUni.acceptance_rate != null ? `${selectedUni.acceptance_rate}%` : "N/A" },
-            { label: "Tuition", value: selectedUni.tuition == null ? "N/A" : selectedUni.tuition === 0 ? "Free" : `$${selectedUni.tuition.toLocaleString()}` },
-            { label: "Ranking", value: `#${selectedUni.ranking}` }
-          ]}
-          tips={selectedUni.noticable_facts || [
-            "Research specific program requirements before applying.",
-            "International students must prepare English proficiency test scores.",
-            "Admission is highly competitive."
-          ]}
-        />
-      )}
       <main id="mainContent" role="main" style={{ paddingTop: "80px", minHeight: "100vh", background: "var(--bg-color)" }}>
         
         <section className={styles.heroSection}>
@@ -608,9 +585,9 @@ export default function UniversitiesPage() {
                       </div>
 
                       <div className={styles.cardActions}>
-                        <button onClick={() => setSelectedUni(uni)} className={styles.detailsBtn}>
+                        <Link href={`/universities/${uni.id}`} className={styles.detailsBtn} style={{ textDecoration: "none" }}>
                           <GraduationCap size={18} /> Details
-                        </button>
+                        </Link>
                         <Link href="/dashboard" className={styles.guideBtn}>
                           Guide <ArrowRight size={18} />
                         </Link>

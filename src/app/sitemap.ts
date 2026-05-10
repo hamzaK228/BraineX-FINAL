@@ -1,11 +1,20 @@
 import { MetadataRoute } from 'next';
+import { prisma } from '@/lib/prisma';
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  // In a real production scenario with dynamic routes (e.g., /universities/[id]), 
-  // you would fetch those IDs from the database and map them here.
-  // For now, we return the primary static and top-level dynamic routes.
-  
-  const baseUrl = 'https://braine-x.com'; // Actual production domain
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const baseUrl = 'https://braine-x.com';
+
+  // Fetch all universities from the database
+  const universities = await prisma.contentUniversity.findMany({
+    select: { id: true, updatedAt: true }
+  });
+
+  const universityUrls: MetadataRoute.Sitemap = universities.map((uni) => ({
+    url: `${baseUrl}/universities/${uni.id}`,
+    lastModified: uni.updatedAt || new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.8,
+  }));
 
   return [
     {
@@ -38,5 +47,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.5,
     },
+    ...universityUrls,
   ];
 }
