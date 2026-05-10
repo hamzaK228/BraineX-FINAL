@@ -437,10 +437,6 @@ export default function UniversitiesPage() {
                     }}
                   >
                     <Search size={20} /> Deep Search with Google
-                  </button>
-                </motion.div>
-              )}
-
               {isSearchingWeb && (
                 <GoogleSearcherIndicator query={search} onCancel={() => setIsSearchingWeb(false)} />
               )}
@@ -448,51 +444,108 @@ export default function UniversitiesPage() {
               {hasSearchedWeb && !isSearchingWeb && webResults.length > 0 && (
                 <div style={{ marginTop: "3rem" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "2rem" }}>
-                    <div style={{ padding: "0.5rem", background: "rgba(66,133,244,0.1)", borderRadius: "10px" }}>
+                    <div style={{ padding: "0.75rem", background: "linear-gradient(135deg, rgba(66,133,244,0.15), rgba(52,168,83,0.15))", borderRadius: "12px", border: "1px solid rgba(66,133,244,0.2)" }}>
                       <Globe size={24} color="#4285F4" />
                     </div>
-                    <h3 style={{ fontSize: "1.5rem", fontWeight: "800", margin: 0 }}>Web Results from Google</h3>
+                    <div>
+                      <h3 style={{ fontSize: "1.5rem", fontWeight: "800", margin: 0, color: "var(--text-color)" }}>Web Results</h3>
+                      <p style={{ margin: "0.25rem 0 0 0", color: "var(--text-muted)", fontSize: "0.9rem" }}>Sourced in real-time via Google Search</p>
+                    </div>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1.5rem" }}>
-                    {webResults.map((result, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        style={{
-                          background: "var(--card-bg)",
-                          border: "1px solid var(--card-border)",
-                          borderRadius: "20px",
-                          padding: "1.5rem",
-                          transition: "transform 0.2s"
-                        }}
-                        onMouseOver={e => e.currentTarget.style.transform = "translateX(10px)"}
-                        onMouseOut={e => e.currentTarget.style.transform = "translateX(0)"}
-                      >
-                        <h4 style={{ margin: "0 0 0.5rem 0", color: "#4285F4", fontSize: "1.2rem" }}>
-                          <a href={result.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", color: "inherit" }}>
-                            {result.title}
-                          </a>
-                        </h4>
-                        <p style={{ margin: "0 0 1rem 0", color: "var(--text-muted)", fontSize: "0.95rem", lineHeight: "1.5" }}>{result.snippet}</p>
-                        <a 
-                          href={result.link} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          style={{ 
-                            fontSize: "0.85rem", 
-                            color: "var(--text-muted)", 
-                            display: "flex", 
-                            alignItems: "center", 
-                            gap: "0.4rem",
-                            textDecoration: "none"
+                  
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.5rem" }}>
+                    {webResults.map((result, i) => {
+                      let domain = "";
+                      try { domain = new URL(result.link).hostname; } catch (e) {}
+                      
+                      return (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.1, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                          style={{
+                            background: "var(--card-bg)",
+                            border: "1px solid var(--card-border)",
+                            borderRadius: "24px",
+                            padding: "1.5rem",
+                            display: "flex",
+                            flexDirection: "column",
+                            height: "100%",
+                            boxShadow: "0 4px 20px rgba(0,0,0,0.03)",
+                            transition: "all 0.3s ease",
+                            position: "relative",
+                            overflow: "hidden"
+                          }}
+                          onMouseOver={e => {
+                            e.currentTarget.style.transform = "translateY(-5px)";
+                            e.currentTarget.style.boxShadow = "0 12px 30px rgba(66,133,244,0.1)";
+                            e.currentTarget.style.borderColor = "rgba(66,133,244,0.3)";
+                          }}
+                          onMouseOut={e => {
+                            e.currentTarget.style.transform = "translateY(0)";
+                            e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.03)";
+                            e.currentTarget.style.borderColor = "var(--card-border)";
                           }}
                         >
-                          <ExternalLink size={14} /> {result.link}
-                        </a>
-                      </motion.div>
-                    ))}
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
+                            {domain && (
+                              <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: "#fff", padding: "2px", boxShadow: "0 2px 5px rgba(0,0,0,0.1)" }}>
+                                <img 
+                                  src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`} 
+                                  alt={domain}
+                                  style={{ width: "100%", height: "100%", borderRadius: "50%" }}
+                                />
+                              </div>
+                            )}
+                            <span style={{ fontSize: "0.85rem", fontWeight: "600", color: "var(--text-muted)", background: "var(--bg-color)", padding: "0.2rem 0.6rem", borderRadius: "100px" }}>
+                              {domain || "External Site"}
+                            </span>
+                          </div>
+
+                          <h4 style={{ margin: "0 0 0.75rem 0", fontSize: "1.15rem", lineHeight: "1.4", fontWeight: "700" }}>
+                            <a href={result.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", color: "var(--text-color)", transition: "color 0.2s" }} onMouseOver={e => e.currentTarget.style.color = "#4285F4"} onMouseOut={e => e.currentTarget.style.color = "var(--text-color)"}>
+                              {result.title}
+                            </a>
+                          </h4>
+                          
+                          <p style={{ margin: "0 0 1.5rem 0", color: "var(--text-muted)", fontSize: "0.95rem", lineHeight: "1.6", flex: 1 }}>
+                            {result.snippet}
+                          </p>
+
+                          <a 
+                            href={result.link} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            style={{ 
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: "0.5rem",
+                              padding: "0.75rem 1rem",
+                              background: "rgba(66,133,244,0.05)",
+                              color: "#4285F4",
+                              textDecoration: "none",
+                              borderRadius: "12px",
+                              fontSize: "0.9rem",
+                              fontWeight: "600",
+                              transition: "all 0.2s",
+                              marginTop: "auto"
+                            }}
+                            onMouseOver={e => {
+                              e.currentTarget.style.background = "#4285F4";
+                              e.currentTarget.style.color = "#fff";
+                            }}
+                            onMouseOut={e => {
+                              e.currentTarget.style.background = "rgba(66,133,244,0.05)";
+                              e.currentTarget.style.color = "#4285F4";
+                            }}
+                          >
+                            Visit Resource <ArrowRight size={16} />
+                          </a>
+                        </motion.div>
+                      );
+                    })}
                   </div>
                   <div style={{ textAlign: "center", marginTop: "3rem" }}>
                     <button 
