@@ -9,7 +9,19 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "BraineX | Empower Your Future",
-  description: "Your gateway to scholarships, mentorship, projects, and global opportunities.",
+  description: "Your gateway to scholarships, mentorship, projects, and global opportunities. Discover world-class universities and funding with our AI-powered Deep Search.",
+  keywords: ["scholarships", "universities", "education", "mentorship", "BraineX", "global opportunities", "AI search"],
+  openGraph: {
+    title: "BraineX | Empower Your Future",
+    description: "Your gateway to scholarships, mentorship, projects, and global opportunities. Discover world-class universities and funding with our AI-powered Deep Search.",
+    type: "website",
+    siteName: "BraineX",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "BraineX | Empower Your Future",
+    description: "Your gateway to scholarships, mentorship, projects, and global opportunities.",
+  },
 };
 
 export default function RootLayout({

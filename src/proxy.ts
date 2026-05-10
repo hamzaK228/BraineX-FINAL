@@ -8,10 +8,9 @@ export function proxy(request: NextRequest) {
   const isAuthPage = pathname === "/login" || pathname === "/signup";
 
   // Check for auth session token (set by NextAuth)
-  const token =
-    request.cookies.get("authjs.session-token") ??
-    request.cookies.get("__Secure-authjs.session-token");
-  const isLoggedIn = !!token;
+  const allCookies = request.cookies.getAll();
+  const sessionCookie = allCookies.find(c => c.name.includes("session-token"));
+  const isLoggedIn = !!sessionCookie;
 
   // Redirect logged-in users away from auth pages
   if (isLoggedIn && isAuthPage) {

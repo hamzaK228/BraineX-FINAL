@@ -19,14 +19,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: "/login",
     newUser: "/dashboard",
   },
+  debug: process.env.NODE_ENV === "development",
   providers: [
     GoogleProvider({
+      id: "google",
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      allowDangerousEmailAccountLinking: true,
     }),
     GitHubProvider({
+      id: "github",
       clientId: process.env.GITHUB_CLIENT_ID!,
       clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      allowDangerousEmailAccountLinking: true,
     }),
     CredentialsProvider({
       name: "credentials",

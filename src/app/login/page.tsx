@@ -28,6 +28,10 @@ function LoginForm() {
 
   useEffect(() => {
     if (searchParams.get("forgot") === "true") setShowForgot(true);
+    const errorParam = searchParams.get("error");
+    if (errorParam) {
+      setError(`Authentication Error: ${errorParam}`);
+    }
   }, [searchParams]);
 
   useEffect(() => {
@@ -47,35 +51,19 @@ function LoginForm() {
     setLoading(true);
 
     try {
-      // Fetch CSRF token first
-      const csrfRes = await fetch("/api/auth/csrf");
-      const { csrfToken } = await csrfRes.json();
-
-      const res = await fetch("/api/auth/callback/credentials", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          email,
-          password,
-          redirect: "false",
-          callbackUrl: "/dashboard",
-          csrfToken,
-        }),
-        redirect: "manual",
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
       });
 
-      // NextAuth returns a redirect (302) on success
-      if (res.ok || res.type === "opaqueredirect" || res.status === 302 || res.status === 200) {
-        // Check if session was created
-        const sessionRes = await fetch("/api/auth/session");
-        const session = await sessionRes.json();
-        if (session?.user) {
-          window.location.href = "/dashboard";
-          return;
-        }
+      if (result?.error) {
+        setError("Invalid email or password. Please try again.");
+      } else {
+        window.location.href = "/dashboard";
       }
-      setError("Invalid email or password. Please try again.");
-    } catch {
+    } catch (err) {
+      console.error("Login error:", err);
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
@@ -153,7 +141,12 @@ function LoginForm() {
   };
 
   const handleOAuth = async (provider: string) => {
-    await signIn(provider, { redirectTo: "/dashboard" });
+    console.log(`🚀 Initiating OAuth sign-in for: ${provider}`);
+    try {
+      await signIn(provider, { redirectTo: "/dashboard" });
+    } catch (err) {
+      console.error(`❌ OAuth sign-in failed for ${provider}:`, err);
+    }
   };
 
   const inputStyle = (isLoading: boolean) => ({

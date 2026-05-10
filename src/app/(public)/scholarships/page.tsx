@@ -4,8 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { PublicHeader } from "@/components/PublicHeader";
 import { InfoModal } from "@/components/InfoModal";
 import styles from "./page.module.css";
-import { Search, MapPin, Award, ChevronDown, Filter, Globe, GraduationCap, Coins, FlaskConical, UserCheck, Monitor, Bookmark } from "lucide-react";
+import { Search, MapPin, Award, ChevronDown, Filter, Globe, GraduationCap, Coins, FlaskConical, UserCheck, Monitor, Bookmark, ExternalLink } from "lucide-react";
 import { useSaved } from "@/context/SavedContext";
+import { GoogleSearcherIndicator } from "@/components/GoogleSearcherIndicator";
 
 type Scholarship = {
   id: string; title: string; provider: string; location: string;
@@ -28,6 +29,11 @@ export default function ScholarshipsPage() {
   const [sort, setSort] = useState("amount_desc");
   const [selectedSchol, setSelectedSchol] = useState<Scholarship | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  // Web Search State
+  const [isSearchingWeb, setIsSearchingWeb] = useState(false);
+  const [webResults, setWebResults] = useState<any[]>([]);
+  const [hasSearchedWeb, setHasSearchedWeb] = useState(false);
 
   // Filter States
   const [location, setLocation] = useState("Any Location");
@@ -99,6 +105,21 @@ export default function ScholarshipsPage() {
 
   const tog = (arr: string[], val: string, set: React.Dispatch<React.SetStateAction<string[]>>) => {
     set(prev => prev.includes(val) ? prev.filter(x => x !== val) : [...prev, val]);
+  };
+
+  const handleWebSearch = async () => {
+    if (!search) return;
+    setIsSearchingWeb(true);
+    setHasSearchedWeb(true);
+    try {
+      const res = await fetch(`/api/search/google?q=${encodeURIComponent(search)}`);
+      const data = await res.json();
+      setWebResults(data.results || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSearchingWeb(false);
+    }
   };
 
   const filtered = useMemo(() => {
@@ -322,6 +343,108 @@ export default function ScholarshipsPage() {
                   </select>
                 </div>
               </div>
+
+              {filtered.length === 0 && !isSearchingWeb && !hasSearchedWeb && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  style={{ 
+                    textAlign: "center", 
+                    padding: "5rem 2rem", 
+                    background: "var(--card-bg)", 
+                    borderRadius: "32px", 
+                    border: "1px dashed var(--card-border)",
+                    marginTop: "2rem"
+                  }}
+                >
+                  <div style={{ fontSize: "3rem", marginBottom: "1.5rem" }}>🏆</div>
+                  <h3 style={{ fontSize: "1.8rem", marginBottom: "1rem" }}>No direct scholarships found</h3>
+                  <p style={{ color: "var(--text-muted)", maxWidth: "500px", margin: "0 auto 2rem auto", lineHeight: "1.6" }}>
+                    We couldn't find any scholarships matching your search in our primary database. Would you like to consult our global AI searcher?
+                  </p>
+                  <button 
+                    onClick={handleWebSearch}
+                    className="ds-btn ds-btn-primary" 
+                    style={{ 
+                      padding: "1rem 2.5rem", 
+                      borderRadius: "100px", 
+                      background: "linear-gradient(135deg, #10b981, #34A853)",
+                      border: "none",
+                      fontSize: "1.1rem",
+                      fontWeight: "700",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.75rem"
+                    }}
+                  >
+                    <Search size={20} /> Deep Search with Google
+                  </button>
+                </motion.div>
+              )}
+
+              {isSearchingWeb && (
+                <GoogleSearcherIndicator query={search} onCancel={() => setIsSearchingWeb(false)} />
+              )}
+
+              {hasSearchedWeb && !isSearchingWeb && webResults.length > 0 && (
+                <div style={{ marginTop: "3rem" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "2rem" }}>
+                    <div style={{ padding: "0.5rem", background: "rgba(16,185,129,0.1)", borderRadius: "10px" }}>
+                      <Globe size={24} color="#10b981" />
+                    </div>
+                    <h3 style={{ fontSize: "1.5rem", fontWeight: "800", margin: 0 }}>Web Results from Google</h3>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1.5rem" }}>
+                    {webResults.map((result, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                        style={{
+                          background: "var(--card-bg)",
+                          border: "1px solid var(--card-border)",
+                          borderRadius: "20px",
+                          padding: "1.5rem",
+                          transition: "transform 0.2s"
+                        }}
+                        onMouseOver={e => e.currentTarget.style.transform = "translateX(10px)"}
+                        onMouseOut={e => e.currentTarget.style.transform = "translateX(0)"}
+                      >
+                        <h4 style={{ margin: "0 0 0.5rem 0", color: "#10b981", fontSize: "1.2rem" }}>
+                          <a href={result.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", color: "inherit" }}>
+                            {result.title}
+                          </a>
+                        </h4>
+                        <p style={{ margin: "0 0 1rem 0", color: "var(--text-muted)", fontSize: "0.95rem", lineHeight: "1.5" }}>{result.snippet}</p>
+                        <a 
+                          href={result.link} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          style={{ 
+                            fontSize: "0.85rem", 
+                            color: "var(--text-muted)", 
+                            display: "flex", 
+                            alignItems: "center", 
+                            gap: "0.4rem",
+                            textDecoration: "none"
+                          }}
+                        >
+                          <ExternalLink size={14} /> {result.link}
+                        </a>
+                      </motion.div>
+                    ))}
+                  </div>
+                  <div style={{ textAlign: "center", marginTop: "3rem" }}>
+                    <button 
+                      onClick={() => { setHasSearchedWeb(false); setWebResults([]); }}
+                      style={{ background: "transparent", border: "1px solid var(--card-border)", color: "var(--text-muted)", padding: "0.75rem 1.5rem", borderRadius: "100px", cursor: "pointer" }}
+                    >
+                      Back to Database Search
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <div className={styles.grid} style={{ marginTop: "2rem" }}>
                 <AnimatePresence>

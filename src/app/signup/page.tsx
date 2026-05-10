@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { Mail, Lock, ArrowRight, ArrowLeft, Loader2, AlertCircle, CheckCircle2, AtSign, XCircle, User } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 
 export default function SignupPage() {
@@ -16,6 +16,7 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Real-time validation states
   const [emailTouched, setEmailTouched] = useState(false);
@@ -35,7 +36,11 @@ export default function SignupPage() {
         }
       })
       .catch(() => {});
-  }, [router]);
+    const errorParam = searchParams.get("error");
+    if (errorParam) {
+      setError(`Authentication Error: ${errorParam}`);
+    }
+  }, [router, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,11 +63,14 @@ export default function SignupPage() {
       }
 
       setSuccess(true);
-      // Auto-redirect to login after successful registration
-      setTimeout(() => {
-        window.location.href = "/login";
-      }, 2000);
-    } catch {
+      // Auto-login after successful registration
+      await signIn("credentials", {
+        email,
+        password,
+        callbackUrl: "/dashboard",
+      });
+    } catch (err) {
+      console.error("Signup error:", err);
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
@@ -70,7 +78,12 @@ export default function SignupPage() {
   };
 
   const handleOAuth = async (provider: string) => {
-    await signIn(provider, { redirectTo: "/dashboard" });
+    console.log(`🚀 Initiating OAuth sign-up for: ${provider}`);
+    try {
+      await signIn(provider, { redirectTo: "/dashboard" });
+    } catch (err) {
+      console.error(`❌ OAuth sign-up failed for ${provider}:`, err);
+    }
   };
 
   const getValidationIcon = (touched: boolean, valid: boolean) => {
